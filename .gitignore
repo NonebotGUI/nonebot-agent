@@ -6,3 +6,4 @@ cutl-test.sh
 agent.json
 bots/
 ws.dart
+pubspec.lock
