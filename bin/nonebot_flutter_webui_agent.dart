@@ -98,7 +98,6 @@ void main() {
                   orElse: () => {'error': 'Bot Not Found!'},
                 );
                 webSocket.sink.add(bot.toString());
-                
                 break;
               default:
                 webSocket.sink.add('Unknown Command!');
