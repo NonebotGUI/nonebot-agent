@@ -11,6 +11,7 @@ class Logger {
   static final AnsiPen _bluePen = AnsiPen()..blue();
   static final AnsiPen _purplePen = AnsiPen()..magenta();
   static final AnsiPen _cyanPen = AnsiPen()..cyan();
+  static final AnsiPen _lightGreenPen = AnsiPen()..xterm(118);
 
   static AnsiPen _getRandomRainbowColor() {
     final random = Random();
@@ -95,7 +96,7 @@ class Logger {
 
   /// SUCCESS级别日志
   static void success(String message) {
-    _log("SUCCESS", message, _greenPen);
+    _log("SUCCESS", message, _lightGreenPen);
   }
 
   /// API请求日志
