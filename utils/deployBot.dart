@@ -238,13 +238,13 @@ class DeployBot {
   "path": "${path.replaceAll('\\', '\\\\')}\\\\$name",
   "time": "$time",
   "id": "$id",
-  "isrunning": "false",
+  "isRunning": "false",
   "pid": "Null",
   "type": "$type",
   "protocolPath": "$protocolPath",
   "cmd": "$cmd",
   "protocolPid": "Null",
-  "protocolIsrunning": false
+  "protocolIsRunning": false
 
 }
 ''';
@@ -260,13 +260,13 @@ class DeployBot {
   "path": "$path/$name",
   "time": "$time",
   "id": "$id",
-  "isrunning": "false",
+  "isRunning": "false",
   "pid": "Null",
   "type": "$type",
   "protocolPath": "$protocolPath",
   "cmd": "$cmd",
   "protocolPid": "Null",
-  "protocolIsrunning": false
+  "protocolIsRunning": false
 }
 ''';
       cfgFile.writeAsStringSync(botInfo);
@@ -281,13 +281,13 @@ class DeployBot {
   "path": "$path/$name",
   "time": "$time",
   "id": "$id",
-  "isrunning": "false",
+  "isRunning": "false",
   "pid": "Null",
   "type": "$type",
   "protocolPath": "$protocolPath",
   "cmd": "$cmd",
   "protocolPid": "Null",
-  "protocolIsrunning": false
+  "protocolIsRunning": false
 }
 ''';
       cfgFile.writeAsStringSync(botInfo);

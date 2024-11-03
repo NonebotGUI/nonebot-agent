@@ -25,8 +25,9 @@ class AgentMain {
       file.createSync();
       const String content = '''
 {
-  "host": "localhost",
-  "port": 2519,
+  "host": "127.0.0.1",
+  "httpPort": 2519,
+  "wsPort": 2520,
   "token": "",
   "freeText": "Mem",
   "python":"default",

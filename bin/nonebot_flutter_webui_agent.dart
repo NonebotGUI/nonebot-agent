@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import '../utils/core.dart';
@@ -131,6 +130,7 @@ void main() {
       return Response.ok(
         prettyJson,
         headers: {'Content-Type': 'application/json'},
+        encoding: utf8
       );
     });
 
@@ -145,17 +145,85 @@ void main() {
       return Response.ok(
         prettyJson,
         headers: {'Content-Type': 'application/json'},
+        encoding: utf8
+      );
+    });
+
+    // 获取 Bot 日志
+    router.get('/nbgui/v1/bots/log/<id>', (Request request, String id) async {
+      gOnOpen = id;
+      var log = await Bot.log();
+      return Response.ok(
+        log,
+        headers: {'Content-Type': 'text/plain'},
+        encoding: utf8
       );
     });
 
     // 启动 Bot
-    router.get('/nbgui/v1/bots/start/<id>', (Request request, String id) async {
+    router.get('/nbgui/v1/bots/run/<id>', (Request request, String id) async {
       gOnOpen = id;
-      Bot.run();
-      return Response.ok(
-        '{"status": "Bot $id started!"}',
-        headers: {'Content-Type': 'application/json'},
-      );
+      if (!Bot.status()) {
+        Bot.run();
+        Logger.success('Bot $id started!');
+        return Response.ok(
+          '{"status": "Bot $id started!"}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8
+        );
+      } else {
+        Logger.error('Bot $id is already running!');
+        return Response.ok(
+          '{"code": 1002, "error": "Bot $id is already running!"}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8,
+        );
+      }
+    });
+
+    // 停止 Bot
+    router.get('/nbgui/v1/bots/stop/<id>', (Request request, String id) async {
+      gOnOpen = id;
+      if (Bot.status()) {
+        Bot.stop();
+        Logger.success('Bot $id stopped!');
+        return Response.ok(
+          '{"status": "Bot $id stopped!"}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8
+        );
+      } else {
+        Logger.error('Bot $id is not running!');
+        return Response.ok(
+          '{"code": 1001, "error": "Bot $id is not running!"}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8,
+        );
+      }
+    });
+
+    // 重启 Bot
+    router.get('/nbgui/v1/bots/restart/<id>', (Request request, String id) async {
+      gOnOpen = id;
+      if (Bot.status()) {
+        Bot.stop();
+        await Future.delayed(const Duration(seconds: 1), () {
+          Bot.run();
+        });
+        Logger.success('Bot $id restarted!');
+        return Response.ok(
+          '{"status": "Bot $id restarted!"}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8
+        );
+      } else {
+        Logger.error('Bot $id is not running!');
+        return Response.ok(
+          '{"code": 1001, "error": "Bot $id is not running!"}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8,
+        );
+      }
     });
 
     // 获取系统状态
@@ -163,16 +231,20 @@ void main() {
       return Response.ok(
         await System.status(),
         headers: {'Content-Type': 'application/json'},
+        encoding: utf8
       );
     });
+
 
     // 获取系统平台
     router.get('/nbgui/v1/system/platform', (Request request) async {
       return Response.ok(
         System.platform(),
         headers: {'Content-Type': 'application/json'},
+        encoding: utf8
       );
     });
+
 
     // ws处理
     router.get('/nbgui/v1/ws', wsHandler);
