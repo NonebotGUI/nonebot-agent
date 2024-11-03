@@ -1,11 +1,9 @@
 import 'dart:convert';
-
 import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:shelf/shelf.dart';
-
 import 'core.dart';
 import 'global.dart';
 import 'logger.dart';
+import 'manage.dart';
 
 
 // WebSocket 服务
@@ -34,28 +32,91 @@ import 'logger.dart';
               case 'ping':
                 webSocket.sink.add('pong!');
                 break;
+
+              // Bot列表
               case 'bots':
                 JsonEncoder encoder = JsonEncoder.withIndent('  ');
                 String prettyJson = encoder.convert(MainApp.botList);
                 webSocket.sink.add(prettyJson);
                 break;
+
+              // 系统占用
               case 'system':
                 webSocket.sink.add(await System.status());
                 break;
+
+              // 平台信息
               case 'platform':
                 webSocket.sink.add(System.platform());
                 break;
-              case 'botList':
-                webSocket.sink.add(MainApp.botList.toString());
-                break;
+
+              // Bot信息
               case var botInfo when botInfo.startsWith('botInfo/'):
                 var id = botInfo.split('/')[1];
                 var bot = MainApp.botList.firstWhere(
                   (bot) => bot['id'] == id,
                   orElse: () => {'error': 'Bot Not Found!'},
                 );
-                webSocket.sink.add(bot.toString());
+                JsonEncoder encoder = JsonEncoder.withIndent('  ');
+                String prettyJson = encoder.convert(bot);
+                webSocket.sink.add(prettyJson);
                 break;
+
+              // Bot日志
+              case var botLog when botLog.startsWith('bot/log/'):
+                var id = botLog.split('/')[2];
+                gOnOpen = id;
+                var log = await Bot.log();
+                webSocket.sink.add(log);
+                break;
+
+              // 启动Bot
+              case var botStart when botStart.startsWith('bot/run/'):
+                var id = botStart.split('/')[2];
+                gOnOpen = id;
+                if (!Bot.status()) {
+                  Bot.run();
+                  Logger.success('Bot $id started!');
+                  webSocket.sink.add('{"status": "Bot $id started!"}');
+                } else {
+                  Logger.error('Bot $id is already running!');
+                  webSocket.sink.add('{"code": 1002, "error": "Bot $id is already running!"}');
+                }
+                break;
+
+              // 停止Bot
+              case var botStop when botStop.startsWith('bot/stop/'):
+                var id = botStop.split('/')[2];
+                gOnOpen = id;
+                if (Bot.status()) {
+                  Bot.stop();
+                  Logger.success('Bot $id stopped!');
+                  webSocket.sink.add('{"status": "Bot $id stopped!"}');
+                }
+                else {
+                  Logger.error('Bot $id is not running!');
+                  webSocket.sink.add('{"code": 1001, "error": "Bot $id is not running!"}');
+                }
+                break;
+
+              // 重启Bot
+              case var botRestart when botRestart.startsWith('bot/restart/'):
+                var id = botRestart.split('/')[2];
+                gOnOpen = id;
+                if (Bot.status()) {
+                  Bot.stop();
+                  await Future.delayed(const Duration(seconds: 1), () {
+                    Bot.run();
+                  });
+                  Logger.success('Bot $id restarted!');
+                  webSocket.sink.add('{"status": "Bot $id restarted!"}');
+                } else {
+                  Logger.error('Bot $id is not running!');
+                  webSocket.sink.add('{"code": 1001, "error": "Bot $id is not running!"}');
+                }
+                break;
+
+              // 未知命令
               default:
                 webSocket.sink.add('Unknown Command!');
                 break;

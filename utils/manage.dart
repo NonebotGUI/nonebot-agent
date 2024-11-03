@@ -31,10 +31,17 @@ class Bot {
     return jsonMap['path'].toString();
   }
 
+  /// 获取Bot日志
+  static Future<String> log() async {
+    File file = File('${Bot.path()}/nbgui_stdout.log');
+    return file.readAsString(encoding: systemEncoding);
+  }
+
+
   /// 获取Bot运行状态
-  static String status() {
+  static bool status() {
     Map<String, dynamic> jsonMap = _config();
-    return jsonMap['isrunning'].toString();
+    return jsonMap['isRunning'];
   }
 
   /// 获取Bot Pid
@@ -67,7 +74,7 @@ class Bot {
     /// 重写配置文件来更新状态
     Map<String, dynamic> jsonMap = jsonDecode(cfgFile.readAsStringSync());
     jsonMap['pid'] = pid;
-    jsonMap['isrunning'] = 'true';
+    jsonMap['isRunning'] = true;
     cfgFile.writeAsStringSync(jsonEncode(jsonMap));
 
     final outputSink = stdout.openWrite();
@@ -93,7 +100,7 @@ class Bot {
     Process.killPid(pid);
 
     ///更新配置文件
-    botInfo['isrunning'] = 'false';
+    botInfo['isRunning'] = false;
     botInfo['pid'] = 'Null';
     cfgFile.writeAsStringSync(json.encode(botInfo));
     //如果平台为Windows则释放端口
@@ -152,13 +159,13 @@ class Bot {
   "name": "$name",
   "path": "${path.replaceAll('\\', '\\\\')}",
   "time": "$time",
-  "isrunning": "false",
+  "isRunning": false,
   "pid": "Null",
   "type": "$type",
   "protocolPath": "$protocolPath",
   "cmd": "$cmd",
   "protocolPid": "Null",
-  "protocolIsrunning": false
+  "protocolIsRunning": false
 }
 ''';
       cfgFile.writeAsStringSync(botInfo);
@@ -172,13 +179,13 @@ class Bot {
   "name": "$name",
   "path": "$path",
   "time": "$time",
-  "isrunning": "false",
+  "isRunning": false,
   "pid": "Null",
   "type": "$type",
   "protocolPath": "$protocolPath",
   "cmd": "$cmd",
   "protocolPid": "Null",
-  "protocolIsrunning": false
+  "protocolIsRunning": false
 }
 ''';
       cfgFile.writeAsStringSync(botInfo);
@@ -206,7 +213,7 @@ class Protocol {
   ///协议端运行状态
   static bool status() {
     Map<String, dynamic> jsonMap = _config();
-    bool protocolStatus = jsonMap['protocolIsrunning'];
+    bool protocolStatus = jsonMap['protocolIsRunning'];
     return protocolStatus;
   }
 
@@ -246,7 +253,7 @@ class Protocol {
 
     /// 重写配置文件来更新状态
     jsonMap['protocolPid'] = pid;
-    jsonMap['protocolIsrunning'] = true;
+    jsonMap['protocolIsRunning'] = true;
     _configFile.writeAsStringSync(jsonEncode(jsonMap));
 
     final outputSink = stdout.openWrite();
@@ -269,7 +276,7 @@ class Protocol {
     int pid = int.parse(pidString);
     Process.killPid(pid, ProcessSignal.sigkill);
     //更新配置文件
-    botInfo['protocolIsrunning'] = false;
+    botInfo['protocolIsRunning'] = false;
     botInfo['protocolPid'] = 'Null';
     _configFile.writeAsStringSync(json.encode(botInfo));
   }
