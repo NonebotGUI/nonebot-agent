@@ -69,7 +69,7 @@ class AgentMain {
   }
 
   /// 获取端口
-  static int httpPort() {
+  static int port() {
     Map<String, dynamic> jsonMap = _config();
     if (jsonMap.containsKey("httpPort")) {
       int port = jsonMap['httpPort'];
@@ -79,16 +79,6 @@ class AgentMain {
     }
   }
 
-  // webSocket 端口
-  static int wsPort() {
-    Map<String, dynamic> jsonMap = _config();
-    if (jsonMap.containsKey("wsPort")) {
-      int port = jsonMap['wsPort'];
-      return port;
-    } else {
-      return 2520;
-    }
-  }
 
   /// 获取token
   static String? token() {

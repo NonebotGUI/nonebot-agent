@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_router/shelf_router.dart';
 import '../utils/core.dart';
 import '../utils/global.dart';
 import '../utils/logger.dart';
@@ -12,24 +12,15 @@ import '../utils/wsHandler.dart';
 
 void main() {
   runZonedGuarded(() async {
-    // 初始启动日志
     Logger.info('Welcome to NoneBot Agent!');
     Logger.info('By 【夜风】NightWind(2125714976@qq.com)');
     Logger.info('Release under the GPL-3 License.');
     Logger.info('Version: ${AgentMain.version()}');
 
-    // await Future.delayed(const Duration(seconds: 1), () {
-    //   Logger.warn('NoneBot Agent will be started after 3s......');
-    // });
-    // await Future.delayed(const Duration(seconds: 3), () {
-    //   Logger.info('NoneBot Agent is initializing......');
-    // });
-
     // 初始化服务器配置
     AgentMain.init();
     final String host = AgentMain.host();
-    final int httpPort = AgentMain.httpPort();
-    final int wsPort = AgentMain.wsPort();
+    final int port = AgentMain.port();
     Logger.info("HTTP server is starting...");
     Logger.info('Started server process [$pid]');
 
@@ -49,15 +40,6 @@ void main() {
     eventStream.listen((FileSystemEvent event) {
       MainApp.botList = AgentMain.loadBots();
     });
-
-// 分割线----------------------------------------------------------------------------------------------|问就是不喜欢代码堆一块(逃
-
-
-
-
-
-
-// 分割线----------------------------------------------------------------------------------------------
 
     // 定义错误处理的中间件
     Middleware handleErrors() {
@@ -235,7 +217,6 @@ void main() {
       );
     });
 
-
     // 获取系统平台
     router.get('/nbgui/v1/system/platform', (Request request) async {
       return Response.ok(
@@ -245,16 +226,15 @@ void main() {
       );
     });
 
-
-    // ws处理
-    router.get('/nbgui/v1/ws', wsHandler);
+    // WebSocket 路由
+    router.get('/nbgui/v1/ws', (Request request) {
+      return wsHandler(request);
+    });
 
     // 定义404错误处理
     router.all('/<catchall|.*>', (Request request) {
       return Response.notFound('404 Not Found: ${request.url}');
     });
-
-// 分割线----------------------------------------------------------------------------------------------
 
     // 配置中间件
     var httpHandler = const Pipeline()
@@ -263,22 +243,21 @@ void main() {
         .addMiddleware(handleErrors())
         .addHandler(router.call);
 
+    await io.serve((Request request) {
+      if (request.url.path == 'nbgui/v1/ws') {
+        return wsHandler(request);
+      }
+      return httpHandler(request);
+    }, host, port);
 
-
-    // 启动 HTTP 服务器
-    await io.serve(httpHandler, host, httpPort);
-
-    // 启动 WebSocket 服务器
-    await io.serve(wsHandler, host, wsPort);
-
-    // 打印服务器地址
-    if (host.contains('::')) {
-      Logger.info('Listening on http://[${host}]:$httpPort');
-      Logger.info('Listening on ws://[${host}]:$wsPort');
+    if ( host.contains(":")) {
+      Logger.info('HTTP server listening on http://[$host]:$port (Ctrl+C to quit)');
+      Logger.info('WebSocket server listening on ws://[$host]:$port/nbgui/v1/ws');
     } else {
-      Logger.info('Listening on http://$host:$httpPort');
-      Logger.info('Listening on ws://$host:$wsPort');
+      Logger.info('Serving at http://$host:$port (Ctrl+C to quit)');
+      Logger.info('WebSocket server listening on ws://$host:$port/nbgui/v1/ws');
     }
+
   }, (error, stackTrace) {
     Logger.error('Unhandled Exception: $error\nStack Trace:\n$stackTrace');
   });
