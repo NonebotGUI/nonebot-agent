@@ -122,8 +122,8 @@ import 'manage.dart';
                 break;
             }
           }
-        } catch (e) {
-          Logger.error('Error handling message: $e');
+        } catch (e, stackTrace) {
+          Logger.error('Error handling message: $e\nStack Trace:\n$stackTrace');
           webSocket.sink.add('Error processing your request.$e');
         }
         }
