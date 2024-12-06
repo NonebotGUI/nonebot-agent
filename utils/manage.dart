@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'core.dart';
 import 'global.dart';
 import 'userConfig.dart';
 import 'package:toml/toml.dart';
@@ -159,6 +160,7 @@ class Bot {
   "name": "$name",
   "path": "${path.replaceAll('\\', '\\\\')}",
   "time": "$time",
+  "id": "${generateUUID()}"
   "isRunning": false,
   "pid": "Null",
   "type": "$type",
