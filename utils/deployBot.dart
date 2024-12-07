@@ -1,6 +1,6 @@
 import 'dart:io';
+import 'core.dart';
 import 'global.dart';
-import 'package:uuid/uuid.dart';
 import 'userConfig.dart';
 
 ///部署Bot时的相关操作
@@ -226,10 +226,7 @@ class DeployBot {
         "${now.year}年${now.month}月${now.day}日${now.hour}时${now.minute}分${now.second}秒";
     File cfgFile = File('bots/$name.$time.json');
 
-    // 为Bot生成uuid
-    var uuid = Uuid();
-    String v4 = uuid.v4();
-    String id = v4.replaceAll('-', '');
+    String id = generateUUID();
 
     if (Platform.isWindows) {
       String botInfo = '''

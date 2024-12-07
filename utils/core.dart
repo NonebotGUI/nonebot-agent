@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:uuid/uuid.dart';
+
 import 'global.dart';
 import 'logger.dart';
 
@@ -34,13 +36,6 @@ class AgentMain {
   "nbcli":"default",
   "color":"light",
   "checkUpdate": true,
-  "encoding": "systemEncoding",
-  "httpencoding": "utf8",
-  "botEncoding": "systemEncoding",
-  "protocolEncoding": "utf8",
-  "deployEncoding": "systemEncoding",
-  "mirror": "https://registry.nonebot.dev",
-  "refreshMode": "auto"
 }
 ''';
       file.writeAsStringSync(content);
@@ -48,11 +43,15 @@ class AgentMain {
     }
   Directory botDir = Directory('bots/');
   Directory instanceDir = Directory('instance/');
+  Directory cacheDir = Directory('cache/');
   if (!botDir.existsSync()) {
     botDir.createSync();
   }
   if (!instanceDir.existsSync()) {
     instanceDir.createSync();
+  }
+  if (!cacheDir.existsSync()) {
+    cacheDir.createSync();
   }
   MainApp.botList = AgentMain.loadBots();
 }
@@ -145,7 +144,7 @@ class System {
       );
       String memUsage = getMemStatus.stdout.toString().trim().substring(0, 4);
 
-      return '{"cpu_usage": "$cpuUsage%", "memory_usage": "$memUsage%"}';
+      return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
     }
 
     if (Platform.isWindows) {
@@ -166,7 +165,7 @@ class System {
           await Process.run('powershell', ['-Command', memCommand]);
       String memUsage = getMemStatus.stdout.toString().trim().substring(0, 4);
 
-      return '{"cpu_usage": "$cpuUsage%", "memory_usage": "$memUsage%"}';
+      return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
     }
 
     return '{"error": "Unsupported platform"}';
@@ -188,3 +187,10 @@ class System {
 }
 
 
+  // 生成uuid
+  String generateUUID() {
+    var uuid = Uuid();
+    String v4 = uuid.v4();
+    String id = v4.replaceAll('-', '');
+    return id;
+  }
