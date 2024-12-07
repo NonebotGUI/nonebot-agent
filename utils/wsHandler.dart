@@ -5,20 +5,18 @@ import 'global.dart';
 import 'logger.dart';
 import 'manage.dart';
 
-
 // WebSocket 服务
 
-  var wsHandler = webSocketHandler((webSocket) async {
-
-    // 监听客户端消息，并处理错误
-    webSocket.stream.listen(
-      (message) async {
-        message = message.toString().trim();
-        //Logger.debug('Received message: $message');
-        try{
-          var body = message.split('?token=');
-          String msg = body[0];
-          String token = body[1];
+var wsHandler = webSocketHandler((webSocket) async {
+  // 监听客户端消息，并处理错误
+  webSocket.stream.listen(
+    (message) async {
+      message = message.toString().trim();
+      //Logger.debug('Received message: $message');
+      try {
+        var body = message.split('?token=');
+        String msg = body[0];
+        String token = body[1];
         try {
           if (body.length != 2) {
             webSocket.sink.add('{ "error": "400 Bad Request!" }');
@@ -48,12 +46,14 @@ import 'manage.dart';
 
               // 系统占用
               case 'system':
-                String res = '{"type": "systemStatus", "data": ${await System.status()}}';
+                String res =
+                    '{"type": "systemStatus", "data": ${await System.status()}}';
                 webSocket.sink.add(res);
                 break;
               // 平台信息
               case 'platform':
-                String res = '{"type": "platformInfo", "data": ${await System.platform()}}';
+                String res =
+                    '{"type": "platformInfo", "data": ${await System.platform()}}';
                 webSocket.sink.add(res);
                 break;
 
@@ -77,10 +77,7 @@ import 'manage.dart';
                 gOnOpen = id;
                 var log = await Bot.log();
                 //
-                Map response = {
-                  "type": "botLog",
-                  "data": log
-                };
+                Map response = {"type": "botLog", "data": log};
                 String res = jsonEncode(response);
                 webSocket.sink.add(res);
                 break;
@@ -92,11 +89,13 @@ import 'manage.dart';
                 if (!Bot.status()) {
                   Bot.run();
                   Logger.success('Bot $id started!');
-                  String res = '{"type": "startBot", "data": "{\\"status\\": \\"Bot $id started!\\"}"}';
+                  String res =
+                      '{"type": "startBot", "data": "{\\"status\\": \\"Bot $id started!\\"}"}';
                   webSocket.sink.add(res);
                 } else {
                   Logger.error('Bot $id is already running!');
-                  String res = '{"type": "startBot", "data": "{\\"code\\": 1002, \\"error\\": \\"Bot $id is already running!\\"}"}';
+                  String res =
+                      '{"type": "startBot", "data": "{\\"code\\": 1002, \\"error\\": \\"Bot $id is already running!\\"}"}';
                   webSocket.sink.add(res);
                 }
                 break;
@@ -108,12 +107,13 @@ import 'manage.dart';
                 if (Bot.status()) {
                   Bot.stop();
                   Logger.success('Bot $id stopped!');
-                  String res = '{"type": "stopBot", "data": "{\\"status\\": \\"Bot $id stopped!\\"}"}';
+                  String res =
+                      '{"type": "stopBot", "data": "{\\"status\\": \\"Bot $id stopped!\\"}"}';
                   webSocket.sink.add(res);
-                }
-                else {
+                } else {
                   Logger.error('Bot $id is not running!');
-                  String res = '{"type": "stopBot", "data": "{\\"code\\": 1001, \\"error\\": \\"Bot $id is not running!\\"}"}';
+                  String res =
+                      '{"type": "stopBot", "data": "{\\"code\\": 1001, \\"error\\": \\"Bot $id is not running!\\"}"}';
                   webSocket.sink.add(res);
                 }
                 break;
@@ -128,17 +128,19 @@ import 'manage.dart';
                     Bot.run();
                   });
                   Logger.success('Bot $id restarted!');
-                  String res = '{"type": "restartBot", "data": "{\\"status\\": \\"Bot $id restarted!\\"}"}';
+                  String res =
+                      '{"type": "restartBot", "data": "{\\"status\\": \\"Bot $id restarted!\\"}"}';
                   webSocket.sink.add(res);
                 } else {
                   Logger.error('Bot $id is not running!');
-                  String res = '{"type": "restartBot", "data": "{\\"code\\": 1001, \\"error\\": \\"Bot $id is not running!\\"}"}';
+                  String res =
+                      '{"type": "restartBot", "data": "{\\"code\\": 1001, \\"error\\": \\"Bot $id is not running!\\"}"}';
                   webSocket.sink.add(res);
                 }
                 break;
 
               // 导入Bot
-              case var importBot when importBot.startsWith('bot/import/'):
+              case var importBot when importBot.startsWith('bot/import'):
                 var bot = importBot.split('?data=')[1];
                 var botJson = jsonDecode(bot);
                 String name = botJson['name'];
@@ -150,9 +152,7 @@ import 'manage.dart';
                 Logger.success('Bot $name imported!');
                 Map response = {
                   "type": "importBot",
-                  "data": {
-                    "status": "Bot $name imported!"
-                  }
+                  "data": {"status": "Bot $name imported!"}
                 };
                 String res = jsonEncode(response);
                 webSocket.sink.add(res);
@@ -167,16 +167,15 @@ import 'manage.dart';
           Logger.error('Error handling message: $e\nStack Trace:\n$stackTrace');
           webSocket.sink.add('Error processing your request.$e');
         }
-        }
-        catch(e){
-          String res = '{"type": "Unauthorized", "data": "401 Unauthorized!"}';
-          webSocket.sink.add('{"error": "401 Unauthorized!"}');
-        }
-      },
-      onError: (error, stackTrace) {
-        Logger.error('$error\nStack Trace:\n$stackTrace');
-        webSocket.sink.add('Error processing your request.$error');
-      },
-      cancelOnError: true,
-    );
-  });
+      } catch (e) {
+        String res = '{"type": "Unauthorized", "data": "401 Unauthorized!"}';
+        webSocket.sink.add('{"error": "401 Unauthorized!"}');
+      }
+    },
+    onError: (error, stackTrace) {
+      Logger.error('$error\nStack Trace:\n$stackTrace');
+      webSocket.sink.add('Error processing your request.$error');
+    },
+    cancelOnError: true,
+  );
+});
