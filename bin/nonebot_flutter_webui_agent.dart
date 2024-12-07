@@ -208,6 +208,27 @@ void main() {
       }
     });
 
+
+  // 导入 Bot
+    router.post('/nbgui/v1/bots/import', (Request request) async {
+      final body = await request.readAsString();
+      var bot = jsonDecode(body);
+      String name = bot['name'];
+      String path = bot['path'];
+      String protocolPath = bot['protocolPath'];
+      bool withProtocol = bot['withProtocol'];
+      String cmd = bot['cmd'];
+      Bot.import(name, path, withProtocol, protocolPath, cmd);
+      Logger.success('Bot $name imported!');
+      return Response.ok(
+        '{"status": "Bot $name imported!"}',
+        headers: {'Content-Type': 'application/json'},
+        encoding: utf8
+      );
+    });
+
+
+
     // 获取系统状态
     router.get('/nbgui/v1/system/status', (Request request) async {
       return Response.ok(
