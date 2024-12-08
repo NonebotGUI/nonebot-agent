@@ -38,7 +38,6 @@ class Bot {
     return file.readAsString(encoding: systemEncoding);
   }
 
-
   /// 获取Bot运行状态
   static bool status() {
     Map<String, dynamic> jsonMap = _config();
@@ -150,9 +149,10 @@ class Bot {
   ///导入Bot
   static import(name, path, withProtocol, protocolPath, cmd) {
     DateTime now = DateTime.now();
+    String id = generateUUID();
     String time =
         "${now.year}年${now.month}月${now.day}日${now.hour}时${now.minute}分${now.second}秒";
-    File cfgFile = File('bots/$name.$time.json');
+    File cfgFile = File('bots/$id.json');
     String type = withProtocol ? 'deployed' : 'imported';
     if (Platform.isWindows) {
       String botInfo = '''
@@ -160,7 +160,7 @@ class Bot {
   "name": "$name",
   "path": "${path.replaceAll('\\', '\\\\')}",
   "time": "$time",
-  "id": "${generateUUID()}"
+  "id": "$id",
   "isRunning": false,
   "pid": "Null",
   "type": "$type",
@@ -181,6 +181,7 @@ class Bot {
   "name": "$name",
   "path": "$path",
   "time": "$time",
+  "id": "$id",
   "isRunning": false,
   "pid": "Null",
   "type": "$type",
