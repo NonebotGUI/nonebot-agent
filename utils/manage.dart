@@ -35,7 +35,11 @@ class Bot {
   /// 获取Bot日志
   static Future<String> log() async {
     File file = File('${Bot.path()}/nbgui_stdout.log');
-    return file.readAsString(encoding: systemEncoding);
+    if (file.existsSync()) {
+      return file.readAsStringSync();
+    } else {
+      return '[INFO] Welcome to NoneBot WebUI!';
+    }
   }
 
   /// 获取Bot运行状态
@@ -123,7 +127,11 @@ class Bot {
   ///获取stderr.log
   static String stderr() {
     File file = File('${Bot.path()}/nbgui_stderr.log');
-    return file.readAsStringSync(encoding: systemEncoding);
+    if (file.existsSync()) {
+      return file.readAsStringSync();
+    } else {
+      return '';
+    }
   }
 
   ///清空stderr.log
