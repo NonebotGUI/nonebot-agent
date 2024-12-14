@@ -1,28 +1,19 @@
+import 'package:web_socket_channel/web_socket_channel.dart';
+
 //全局变量
 
 late String gOnOpen = "";
-
+List<WebSocketChannel> wsChannels = [];
 
 class MainApp {
-  ///log
-  static late String nbLog;
-
-  ///协议端日志
-  static late String protocolLog;
-
-  ///版本号
-  static late String version;
-
-  static late int broadcastId;
-
-  ///部署id
-  static late int deployId;
-
-  ///侧边栏是否展开
-  static late bool barExtended;
-
   ///Bot列表
   static late List botList;
+
+  ///用户python版本
+  static late String python;
+
+  ///用户nbcli版本
+  static late String nbcli;
 }
 
 ///快速部署相关
@@ -117,4 +108,3 @@ class Create {
   ///插件存放位置
   static late String pluginDir;
 }
-

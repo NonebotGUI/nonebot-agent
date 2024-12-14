@@ -12,11 +12,12 @@ import '../utils/wsHandler.dart';
 
 void main() {
   runZonedGuarded(() async {
+    Logger.warn('NoneBot Agent will start in 3 seconds...');
+    await Future.delayed(const Duration(seconds: 3));
     Logger.info('Welcome to NoneBot Agent!');
     Logger.info('By 【夜风】NightWind(2125714976@qq.com)');
     Logger.info('Release under the GPL-3 License.');
     Logger.info('Version: ${AgentMain.version()}');
-
     // 初始化服务器配置
     AgentMain.init();
     final String host = AgentMain.host();
@@ -109,11 +110,8 @@ void main() {
       JsonEncoder encoder = JsonEncoder.withIndent('  ');
       String prettyJson = encoder.convert(MainApp.botList);
 
-      return Response.ok(
-        prettyJson,
-        headers: {'Content-Type': 'application/json'},
-        encoding: utf8
-      );
+      return Response.ok(prettyJson,
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
     // 获取 Bot 信息
@@ -124,22 +122,16 @@ void main() {
       );
       var encoder = JsonEncoder.withIndent('  ');
       String prettyJson = encoder.convert(bot);
-      return Response.ok(
-        prettyJson,
-        headers: {'Content-Type': 'application/json'},
-        encoding: utf8
-      );
+      return Response.ok(prettyJson,
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
     // 获取 Bot 日志
     router.get('/nbgui/v1/bots/log/<id>', (Request request, String id) async {
       gOnOpen = id;
       var log = await Bot.log();
-      return Response.ok(
-        log,
-        headers: {'Content-Type': 'text/plain'},
-        encoding: utf8
-      );
+      return Response.ok(log,
+          headers: {'Content-Type': 'text/plain'}, encoding: utf8);
     });
 
     // 启动 Bot
@@ -148,11 +140,8 @@ void main() {
       if (!Bot.status()) {
         Bot.run();
         Logger.success('Bot $id started!');
-        return Response.ok(
-          '{"status": "Bot $id started!"}',
-          headers: {'Content-Type': 'application/json'},
-          encoding: utf8
-        );
+        return Response.ok('{"status": "Bot $id started!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
       } else {
         Logger.error('Bot $id is already running!');
         return Response.ok(
@@ -169,11 +158,8 @@ void main() {
       if (Bot.status()) {
         Bot.stop();
         Logger.success('Bot $id stopped!');
-        return Response.ok(
-          '{"status": "Bot $id stopped!"}',
-          headers: {'Content-Type': 'application/json'},
-          encoding: utf8
-        );
+        return Response.ok('{"status": "Bot $id stopped!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
       } else {
         Logger.error('Bot $id is not running!');
         return Response.ok(
@@ -185,7 +171,8 @@ void main() {
     });
 
     // 重启 Bot
-    router.get('/nbgui/v1/bots/restart/<id>', (Request request, String id) async {
+    router.get('/nbgui/v1/bots/restart/<id>',
+        (Request request, String id) async {
       gOnOpen = id;
       if (Bot.status()) {
         Bot.stop();
@@ -193,11 +180,8 @@ void main() {
           Bot.run();
         });
         Logger.success('Bot $id restarted!');
-        return Response.ok(
-          '{"status": "Bot $id restarted!"}',
-          headers: {'Content-Type': 'application/json'},
-          encoding: utf8
-        );
+        return Response.ok('{"status": "Bot $id restarted!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
       } else {
         Logger.error('Bot $id is not running!');
         return Response.ok(
@@ -208,8 +192,7 @@ void main() {
       }
     });
 
-
-  // 导入 Bot
+    // 导入 Bot
     router.post('/nbgui/v1/bots/import', (Request request) async {
       final body = await request.readAsString();
       var bot = jsonDecode(body);
@@ -220,31 +203,31 @@ void main() {
       String cmd = bot['cmd'];
       Bot.import(name, path, withProtocol, protocolPath, cmd);
       Logger.success('Bot $name imported!');
-      return Response.ok(
-        '{"status": "Bot $name imported!"}',
-        headers: {'Content-Type': 'application/json'},
-        encoding: utf8
-      );
+      return Response.ok('{"status": "Bot $name imported!"}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
-
-
 
     // 获取系统状态
     router.get('/nbgui/v1/system/status', (Request request) async {
-      return Response.ok(
-        await System.status(),
-        headers: {'Content-Type': 'application/json'},
-        encoding: utf8
-      );
+      return Response.ok(await System.status(),
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
     // 获取系统平台
     router.get('/nbgui/v1/system/platform', (Request request) async {
-      return Response.ok(
-        System.platform(),
-        headers: {'Content-Type': 'application/json'},
-        encoding: utf8
-      );
+      return Response.ok(System.platform(),
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 获取Agent版本信息
+    router.get('/nbgui/v1/version', (Request request) async {
+      Map<String, String> version = {
+        'version': AgentMain.version(),
+        'nbcli': MainApp.nbcli.replaceAll('nb: ', '').replaceAll('\n', ''),
+        'python': MainApp.python,
+      };
+      return Response.ok(jsonEncode(version),
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
     // WebSocket 路由
@@ -271,14 +254,15 @@ void main() {
       return httpHandler(request);
     }, host, port);
 
-    if ( host.contains(":")) {
-      Logger.info('HTTP server listening on http://[$host]:$port (Ctrl+C to quit)');
-      Logger.info('WebSocket server listening on ws://[$host]:$port/nbgui/v1/ws');
+    if (host.contains(":")) {
+      Logger.info(
+          'HTTP server listening on http://[$host]:$port (Ctrl+C to quit)');
+      Logger.info(
+          'WebSocket server listening on ws://[$host]:$port/nbgui/v1/ws');
     } else {
       Logger.info('Serving at http://$host:$port (Ctrl+C to quit)');
       Logger.info('WebSocket server listening on ws://$host:$port/nbgui/v1/ws');
     }
-
   }, (error, stackTrace) {
     Logger.error('Unhandled Exception: $error\nStack Trace:\n$stackTrace');
   });
