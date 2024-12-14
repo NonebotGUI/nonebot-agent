@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:uuid/uuid.dart';
-
 import 'global.dart';
 import 'logger.dart';
+import 'userConfig.dart';
 
 class AgentMain {
   /// 软件版本
@@ -20,7 +19,7 @@ class AgentMain {
   }
 
   ///初始化应用程序
-  static void init() {
+  static void init() async {
     File file = File('agent.json');
     if (!file.existsSync()) {
       Logger.warn("Config file not found, creating a new one...");
@@ -34,27 +33,34 @@ class AgentMain {
   "freeText": "Mem",
   "python":"default",
   "nbcli":"default",
-  "color":"light",
   "checkUpdate": true,
 }
 ''';
       file.writeAsStringSync(content);
       Logger.success("Config file created successfully.");
     }
-  Directory botDir = Directory('bots/');
-  Directory instanceDir = Directory('instance/');
-  Directory cacheDir = Directory('cache/');
-  if (!botDir.existsSync()) {
-    botDir.createSync();
+    Directory botDir = Directory('bots/');
+    Directory instanceDir = Directory('instance/');
+    Directory cacheDir = Directory('cache/');
+    if (!botDir.existsSync()) {
+      botDir.createSync();
+    }
+    if (!instanceDir.existsSync()) {
+      instanceDir.createSync();
+    }
+    if (!cacheDir.existsSync()) {
+      cacheDir.createSync();
+    }
+    MainApp.botList = AgentMain.loadBots();
+    await getPyVer();
+    await getnbcliver();
+    if (MainApp.python == '你似乎还没有安装python？') {
+      Logger.warn('It seems that you have not installed python?');
+    }
+    if (MainApp.nbcli == '你似乎还没有安装nb-cli？') {
+      Logger.warn('It seems that you have not installed nb-cli?');
+    }
   }
-  if (!instanceDir.existsSync()) {
-    instanceDir.createSync();
-  }
-  if (!cacheDir.existsSync()) {
-    cacheDir.createSync();
-  }
-  MainApp.botList = AgentMain.loadBots();
-}
 
   /// 获取主机
   static String host() {
@@ -77,7 +83,6 @@ class AgentMain {
       return 2519;
     }
   }
-
 
   /// 获取token
   static String? token() {
@@ -186,11 +191,43 @@ class System {
   }
 }
 
+// 生成uuid
+String generateUUID() {
+  var uuid = Uuid();
+  String v4 = uuid.v4();
+  String id = v4.replaceAll('-', '');
+  return id;
+}
 
-  // 生成uuid
-  String generateUUID() {
-    var uuid = Uuid();
-    String v4 = uuid.v4();
-    String id = v4.replaceAll('-', '');
-    return id;
+// 向客户端发送WebSocket消息
+void sendMessageToClients(String message) {
+  for (var client in wsChannels) {
+    client.sink.add(message);
   }
+}
+
+///检查py
+Future<String> getPyVer() async {
+  try {
+    ProcessResult results =
+        await Process.run('${UserConfig.pythonPath()}', ['--version']);
+    MainApp.python = results.stdout.trim();
+    return MainApp.python;
+  } catch (e) {
+    MainApp.python = '你似乎还没有安装python？';
+    return MainApp.python;
+  }
+}
+
+///检查nbcli
+Future<String> getnbcliver() async {
+  try {
+    final ProcessResult results =
+        await Process.run('${UserConfig.nbcliPath()}', ['-V']);
+    MainApp.nbcli = results.stdout;
+    return MainApp.nbcli;
+  } catch (error) {
+    MainApp.nbcli = '你似乎还没有安装nb-cli？';
+    return MainApp.nbcli;
+  }
+}

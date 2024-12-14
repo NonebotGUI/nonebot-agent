@@ -6,13 +6,14 @@ import 'logger.dart';
 import 'manage.dart';
 
 // WebSocket 服务
-
 var wsHandler = webSocketHandler((webSocket) async {
   // 监听客户端消息，并处理错误
+  wsChannels.add(webSocket);
+  Logger.success(
+      'Websocket connection established!Connections:${wsChannels.length}');
   webSocket.stream.listen(
     (message) async {
       message = message.toString().trim();
-      //Logger.debug('Received message: $message');
       try {
         var body = message.split('?token=');
         String msg = body[0];
@@ -32,6 +33,21 @@ var wsHandler = webSocketHandler((webSocket) async {
                 String res = '{"type": "pong", "data": "pong!"}';
                 webSocket.sink.add(res);
                 break;
+
+              // 版本信息
+              case 'version':
+                Map<String, String> version = {
+                  'version': AgentMain.version(),
+                  'nbcli':
+                      MainApp.nbcli.replaceAll('nb: ', '').replaceAll('\n', ''),
+                  'python': MainApp.python,
+                };
+                Map response = {
+                  "type": "version",
+                  "data": version,
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
 
               // Bot列表
               case 'botList':
@@ -177,5 +193,9 @@ var wsHandler = webSocketHandler((webSocket) async {
       webSocket.sink.add('Error processing your request.$error');
     },
     cancelOnError: true,
+    onDone: () {
+      wsChannels.remove(webSocket);
+      Logger.info('WebSocket disconnected!Connections:${wsChannels.length}');
+    },
   );
 });
