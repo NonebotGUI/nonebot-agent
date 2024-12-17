@@ -8,6 +8,7 @@ import '../utils/core.dart';
 import '../utils/global.dart';
 import '../utils/logger.dart';
 import '../utils/manage.dart';
+import '../utils/runCmd.dart';
 import '../utils/wsHandler.dart';
 
 void main() {
@@ -106,7 +107,7 @@ void main() {
     });
 
     // 获取 Bot 列表
-    router.get('/nbgui/v1/bots/list', (Request request) async {
+    router.get('/nbgui/v1/bot/list', (Request request) async {
       JsonEncoder encoder = JsonEncoder.withIndent('  ');
       String prettyJson = encoder.convert(MainApp.botList);
 
@@ -115,7 +116,7 @@ void main() {
     });
 
     // 获取 Bot 信息
-    router.get('/nbgui/v1/bots/info/<id>', (Request request, String id) async {
+    router.get('/nbgui/v1/bot/info/<id>', (Request request, String id) async {
       var bot = MainApp.botList.firstWhere(
         (bot) => bot['id'] == id,
         orElse: () => {'error': 'Bot Not Found!'},
@@ -127,7 +128,7 @@ void main() {
     });
 
     // 获取 Bot 日志
-    router.get('/nbgui/v1/bots/log/<id>', (Request request, String id) async {
+    router.get('/nbgui/v1/bot/log/<id>', (Request request, String id) async {
       gOnOpen = id;
       var log = await Bot.log();
       return Response.ok(log,
@@ -135,7 +136,7 @@ void main() {
     });
 
     // 启动 Bot
-    router.get('/nbgui/v1/bots/run/<id>', (Request request, String id) async {
+    router.get('/nbgui/v1/bot/run/<id>', (Request request, String id) async {
       gOnOpen = id;
       if (!Bot.status()) {
         Bot.run();
@@ -153,7 +154,7 @@ void main() {
     });
 
     // 停止 Bot
-    router.get('/nbgui/v1/bots/stop/<id>', (Request request, String id) async {
+    router.get('/nbgui/v1/bot/stop/<id>', (Request request, String id) async {
       gOnOpen = id;
       if (Bot.status()) {
         Bot.stop();
@@ -171,7 +172,7 @@ void main() {
     });
 
     // 重启 Bot
-    router.get('/nbgui/v1/bots/restart/<id>',
+    router.get('/nbgui/v1/bot/restart/<id>',
         (Request request, String id) async {
       gOnOpen = id;
       if (Bot.status()) {
@@ -193,7 +194,7 @@ void main() {
     });
 
     // 导入 Bot
-    router.post('/nbgui/v1/bots/import', (Request request) async {
+    router.post('/nbgui/v1/bot/import', (Request request) async {
       final body = await request.readAsString();
       var bot = jsonDecode(body);
       String name = bot['name'];
@@ -204,6 +205,25 @@ void main() {
       Bot.import(name, path, withProtocol, protocolPath, cmd);
       Logger.success('Bot $name imported!');
       return Response.ok('{"status": "Bot $name imported!"}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 创建 Bot
+    router.post('/nbgui/v1/bot/create', (Request request) async {
+      final body = await request.readAsString();
+      var bot = jsonDecode(body);
+      String path = bot['path'];
+      String name = bot['name'];
+      List drivers = bot['drivers'];
+      List adapters = bot['adapters'];
+      String template = bot['template'];
+      String pluginDir = bot['pluginDir'];
+      String venv = bot['venv'];
+      bool installDep = bot['installDep'];
+      Logger.info('Bot $name start creating...');
+      runInstall(
+          path, name, drivers, adapters, template, pluginDir, venv, installDep);
+      return Response.ok('{"status": "Bot $name start creating..."}',
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 

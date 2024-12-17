@@ -6,169 +6,106 @@ import 'userConfig.dart';
 ///部署Bot时的相关操作
 class DeployBot {
   ///写入requirements.txt
-  static writeReq(path, name, driver, adapter) {
-    String drivers = driver.toLowerCase();
-    String driverlist =
-        drivers.split(',').map((driver) => 'nonebot2[$driver]').join(',');
-    driverlist = driverlist.replaceAll(',', '\n');
+  static writeReq(String path, String name, List<String> drivers, String adapter) {
+    String driverList =
+        drivers.map((d) => 'nonebot2[$d]').join('\n');
 
-    RegExp regex = RegExp(r'\(([^)]+)\)');
-    Iterable<Match> matches = regex.allMatches(adapter);
-    String adapterlist = '';
-    for (Match match in matches) {
-      adapterlist += '${match.group(1)}\n';
-    }
-    //处理OB V11与OB V12
-    adapterlist = adapterlist
+    String adapterList = RegExp(r'\(([^)]+)\)')
+        .allMatches(adapter)
+        .map((match) => match.group(1))
+        .join('\n')
         .replaceAll('nonebot-adapter-onebot.v11', 'nonebot-adapter-onebot')
         .replaceAll('nonebot-adapter-onebot.v12', 'nonebot-adapter-onebot');
-    File file = File('$path/$name/requirements.txt');
-    file.writeAsStringSync('$driverlist\n$adapterlist');
+
+    File('$path/$name/requirements.txt')
+        .writeAsStringSync('$driverList\n$adapterList');
   }
 
   ///安装依赖
-  static install(path, name, bool venv, bool installDep) {
-    if (venv) {
-      if (installDep) {
-        if (Platform.isLinux) {
-          String installbot =
-              '$path/$name/.venv/bin/pip install -r $path/$name/requirements.txt';
-          return installbot;
-        } else if (Platform.isWindows) {
-          String installbot =
-              '$path\\$name\\.venv\\Scripts\\pip.exe install -r $path\\$name\\requirements.txt';
-          return installbot;
-        } else if (Platform.isMacOS) {
-          String installbot =
-              '$path/$name/.venv/bin/pip install -r $path/$name/requirements.txt';
-          return installbot;
-        }
-      } else if (installDep) {
-        File requirements = File('$path/$name/requirements.txt');
-        requirements.copy('$path/$name/requirements.txt');
-        return 'echo 跳过依赖安装，将requirements.txt复制至$path/$name下';
-      }
-    } else if (venv) {
-      if (installDep) {
-        String installbot =
-            '${UserConfig.pythonPath()} -m pip install -r requirements.txt';
-        return installbot;
-      } else if (installDep) {
-        File requirements = File('$path/$name/requirements.txt');
-        requirements.copy('$path/$name/requirements.txt');
-        return 'echo 跳过依赖安装，将requirements.txt复制至$path/$name下';
-      }
+  static String install(String path, String name, bool venv, bool installDep) {
+    if (!venv) return 'echo 虚拟环境已关闭，跳过...';
+
+    String requirementsPath = '$path/$name/requirements.txt';
+    if (!installDep) {
+      File(requirementsPath).copySync(requirementsPath);
+      return 'echo 跳过依赖安装，将requirements.txt复制至$path/$name下';
     }
+
+    String pipInstallCmd;
+    if (Platform.isLinux || Platform.isMacOS) {
+      pipInstallCmd = '$path/$name/.venv/bin/pip install -r $requirementsPath';
+    } else if (Platform.isWindows) {
+      pipInstallCmd =
+          '$path\\$name\\.venv\\Scripts\\pip.exe install -r $requirementsPath';
+    } else {
+      pipInstallCmd =
+          '${UserConfig.pythonPath()} -m pip install -r $requirementsPath';
+    }
+    return pipInstallCmd;
   }
 
   ///创建虚拟环境
-  static createVENV(path, name, bool venv) {
-    if (venv) {
-      if (Platform.isLinux || Platform.isMacOS) {
-        String createvenv =
-            '${UserConfig.pythonPath()} -m venv $path/$name/.venv --prompt $name';
-        return createvenv;
-      } else if (Platform.isWindows) {
-        String createvenv =
-            '${UserConfig.pythonPath()} -m venv $path\\$name\\.venv --prompt $name';
-        return createvenv;
-      }
-    } else {
-      return 'echo 虚拟环境已关闭，跳过...';
+  static String createVENV(String path, String name, bool venv) {
+    if (!venv) return 'echo 虚拟环境已关闭，跳过...';
+
+    String createVenvCmd =
+        '${UserConfig.pythonPath()} -m venv $path/$name/.venv --prompt $name';
+    if (Platform.isWindows) {
+      createVenvCmd =
+          '${UserConfig.pythonPath()} -m venv $path\\$name\\.venv --prompt $name';
     }
+    return createVenvCmd;
   }
 
-  static createVENVEcho(path, name) {
-    if (Platform.isLinux) {
-      String echo = "echo 在$path/$name/.venv/中创建虚拟环境";
-      return echo;
-    } else if (Platform.isWindows) {
-      String echo = "echo 在$path\\$name\\.venv\\中创建虚拟环境";
-      return echo;
-    } else if (Platform.isMacOS) {
-      String echo = "echo 在$path/$name/.venv/中创建虚拟环境";
-      return echo;
-    }
+  static createVENVEcho(String path, String name) {
+    String formattedPath =
+        Platform.isWindows ? '$path\\$name\\.venv\\' : '$path/$name/.venv/';
+    return 'echo 在$formattedPath中创建虚拟环境';
   }
 
   ///创建目录
-  static createFolder(path, name, template, pluginDir) {
-    Directory dir = Directory('$path/$name');
-    Directory dirBots = Directory('bots/');
-    if (!dir.existsSync()) {
-      dir.createSync();
-    }
-    if (!dirBots.existsSync()) {
-      dirBots.createSync();
-    }
+  static createFolder(
+      String path, String name, String template, String pluginDir) {
+    Directory('$path/$name').createSync(recursive: true);
+    Directory('bots/').createSync(recursive: true);
+
     if (template == 'simple(插件开发者)') {
-      if (pluginDir == '在[bot名称]/[bot名称]下') {
-        Directory dirSrc = Directory('$path/$name/$name');
-        Directory dirSrcPlugins = Directory('$path/$name/$name/plugins');
-        if (!dirSrc.existsSync()) {
-          dirSrc.createSync();
-        }
-        if (!dirSrcPlugins.existsSync()) {
-          dirSrcPlugins.createSync();
-        }
-      } else if (pluginDir == '在src文件夹下') {
-        Directory dirSrc = Directory('$path/$name/src');
-        Directory dirSrcPlugins = Directory('$path/$name/src/plugins');
-        if (!dirSrc.existsSync()) {
-          dirSrc.createSync();
-        }
-        if (!dirSrcPlugins.existsSync()) {
-          dirSrcPlugins.createSync();
-        }
-      }
+      String pluginsPath = pluginDir == '在[bot名称]/[bot名称]下'
+          ? '$path/$name/$name/plugins'
+          : '$path/$name/src/plugins';
+      Directory(pluginsPath).createSync(recursive: true);
     }
   }
 
   ///写入.env文件
-  static writeENV(path, name, port, template, drivers) {
-    drivers = drivers.toLowerCase();
-    String driverlist =
-        drivers.split(',').map((driver) => '~$driver').join('+');
+  static writeENV(
+      String path, String name, String port, String template, List<String> drivers) {
+    String driverlist = drivers.map((driver) => '~$driver').join('+');
+    String envContent;
     if (template == 'bootstrap(初学者或用户)') {
-      String env = port.toString().isEmpty
+      envContent = port.isEmpty
           ? 'DRIVER=$driverlist'
-          : 'DRIVER=$driverlist\n\n\n\n\nPORT=$port';
-      File fileEnv = File('$path/$name/.env.prod');
-      fileEnv.writeAsStringSync(env);
-      String echo = "echo 写入.env文件";
-      return echo;
+          : 'DRIVER=$driverlist\nPORT=$port';
+      File('$path/$name/.env.prod').writeAsStringSync(envContent);
     } else if (template == 'simple(插件开发者)') {
-      String env = 'ENVIRONMENT=dev\nDRIVER=$driverlist';
-      File fileEnv = File('$path/$name/.env');
-      fileEnv.writeAsStringSync(env);
-      File fileEnvdev = File('$path/$name/.env.dev');
-      String devEnv = port.toString().isNotEmpty
-          ? 'LOG_LEVEL=DEBUG'
-          : 'LOG_LEVEL=DEBUG\n\n\n\n\nPORT=$port';
-      fileEnvdev.writeAsStringSync(devEnv);
-      File fileEnvprod = File('$path/$name/.env.prod');
-      fileEnvprod.createSync();
-      String echo = "echo 写入.env文件";
-      return echo;
+      envContent = 'ENVIRONMENT=dev\nDRIVER=$driverlist';
+      File('$path/$name/.env').writeAsStringSync(envContent);
+      File('$path/$name/.env.dev').writeAsStringSync(
+          port.isNotEmpty ? 'LOG_LEVEL=DEBUG' : 'LOG_LEVEL=DEBUG\nPORT=$port');
+      File('$path/$name/.env.prod').createSync();
     }
+    return 'echo 写入.env文件';
   }
 
   ///写入pyproject.toml
-  static writePyProject(path, name, adapters, template, pluginDir) {
-    RegExp regex = RegExp(r'\(([^)]+)\)');
-    Iterable<Match> matches = regex.allMatches(adapters);
-    String adapterlist = '';
-    for (Match match in matches) {
-      adapterlist += '${match.group(1)},';
-    }
-    String adapterlist_ = adapterlist
-        .split(',')
+  static writePyProject(String path, String name, List<String> adapters,
+      String template, String pluginDir) {
+    String adapterList = adapters
         .map((adapter) =>
             '{ name = "${adapter.replaceAll('nonebot-adapter-', '').replaceAll('.', ' ')}", module_name = "${adapter.replaceAll('-', '.').replaceAll('adapter', 'adapters')}" }')
         .join(',');
 
-    if (template == 'bootstrap(初学者或用户)') {
-      String pyproject = '''
+    String pyproject = '''
     [project]
     name = "$name"
     version = "0.1.0"
@@ -178,83 +115,29 @@ class DeployBot {
 
     [tool.nonebot]
     adapters = [
-        $adapterlist_
+        $adapterList
     ]
     plugins = []
-    plugin_dirs = []
+    plugin_dirs = ${template == 'simple(插件开发者)' ? (pluginDir == '在[bot名称]/[bot名称]下' ? '["$name/plugins"]' : '["/src/plugins"]') : '[]'}
     builtin_plugins = ["echo"]
-  ''';
-      File filePyproject = File('$path/$name/pyproject.toml');
-      filePyproject.writeAsStringSync(pyproject.replaceAll(
-          ',{ name = "", module_name = "" }',
-          ''.replaceAll('adapter', 'adapters')));
-      String echo = "echo 写入pyproject.toml";
-      return echo;
-    } else if (template == 'simple(插件开发者)') {
-      String dir = pluginDir == '在[bot名称]/[bot名称]下'
-          ? '"$name/plugins"'
-          : '"/src/plugins"';
-      String pyproject = '''
-    [project]
-    name = "$name"
-    version = "0.1.0"
-    description = "$name"
-    readme = "README.md"
-    requires-python = ">=3.8, <4.0"
+    ''';
 
-    [tool.nonebot]
-    adapters = [
-        $adapterlist_
-    ]
-    plugins = []
-    plugin_dirs = [$dir]
-    builtin_plugins = ["echo"]
-  ''';
-      File filePyproject = File('$path/$name/pyproject.toml');
-      filePyproject.writeAsStringSync(pyproject.replaceAll(
-          ',{ name = "", module_name = "" }',
-          ''.replaceAll('adapter', 'adapters')));
-      String echo = "echo 写入pyproject.toml";
-      return echo;
-    }
+    File('$path/$name/pyproject.toml').writeAsStringSync(pyproject);
+    return "echo 写入pyproject.toml";
   }
 
   ///写入Bot的json文件
-  static writebot(name, path, type, protocolPath, cmd) {
+  static writeBot(
+      String name, String path, String type, String protocolPath, String cmd) {
     DateTime now = DateTime.now();
     String time =
         "${now.year}年${now.month}月${now.day}日${now.hour}时${now.minute}分${now.second}秒";
-    File cfgFile = File('bots/$name.$time.json');
-
     String id = generateUUID();
 
-    if (Platform.isWindows) {
-      String botInfo = '''
+    String botInfo = '''
 {
   "name": "$name",
-  "path": "${path.replaceAll('\\', '\\\\')}\\\\$name",
-  "time": "$time",
-  "id": "$id",
-  "isRunning": "false",
-  "pid": "Null",
-  "type": "$type",
-  "protocolPath": "$protocolPath",
-  "cmd": "$cmd",
-  "protocolPid": "Null",
-  "protocolIsRunning": false
-
-}
-''';
-      cfgFile.writeAsStringSync(botInfo);
-      String echo = "echo 写入json";
-      return echo;
-    }
-
-    if (Platform.isLinux) {
-      String botInfo = '''
-{
-  "name": "$name",
-  "path": "$path/$name",
+  "path": "$path${Platform.isWindows ? '\\\\' : '/'}$name",
   "time": "$time",
   "id": "$id",
   "isRunning": "false",
@@ -266,31 +149,9 @@ class DeployBot {
   "protocolIsRunning": false
 }
 ''';
-      cfgFile.writeAsStringSync(botInfo);
-      String echo = "echo 写入json";
-      return echo;
-    }
 
-    if (Platform.isMacOS) {
-      String botInfo = '''
-{
-  "name": "$name",
-  "path": "$path/$name",
-  "time": "$time",
-  "id": "$id",
-  "isRunning": "false",
-  "pid": "Null",
-  "type": "$type",
-  "protocolPath": "$protocolPath",
-  "cmd": "$cmd",
-  "protocolPid": "Null",
-  "protocolIsRunning": false
-}
-''';
-      cfgFile.writeAsStringSync(botInfo);
-      String echo = "echo 写入json";
-      return echo;
-    }
+    File('bots/$id.json').writeAsStringSync(botInfo);
+    return "echo 写入json";
   }
 }
 
