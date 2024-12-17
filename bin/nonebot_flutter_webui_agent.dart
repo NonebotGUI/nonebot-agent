@@ -218,7 +218,7 @@ void main() {
       List adapters = bot['adapters'];
       String template = bot['template'];
       String pluginDir = bot['pluginDir'];
-      String venv = bot['venv'];
+      bool venv = bot['venv'];
       bool installDep = bot['installDep'];
       Logger.info('Bot $name start creating...');
       runInstall(

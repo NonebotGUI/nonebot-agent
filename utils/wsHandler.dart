@@ -184,8 +184,8 @@ var wsHandler = webSocketHandler((webSocket) async {
                 List adapters = botJson['adapters'];
                 String template = botJson['template'];
                 String pluginDir = botJson['pluginDir'];
-                String venv = botJson['venv'];
-                String installDep = botJson['installDep'];
+                bool venv = botJson['venv'];
+                bool installDep = botJson['installDep'];
                 runInstall(path, name, drivers, adapters, template, pluginDir,
                     venv, installDep);
                 Logger.info('Bot $name start creating...');
