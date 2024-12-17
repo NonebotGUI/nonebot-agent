@@ -4,13 +4,14 @@ import 'core.dart';
 import 'global.dart';
 import 'logger.dart';
 import 'manage.dart';
+import 'runCmd.dart';
 
 // WebSocket 服务
 var wsHandler = webSocketHandler((webSocket) async {
   // 监听客户端消息，并处理错误
   wsChannels.add(webSocket);
   Logger.success(
-      'Websocket connection established!Connections:${wsChannels.length}');
+      'Websocket connection established. ${wsChannels.length} connections now.');
   webSocket.stream.listen(
     (message) async {
       message = message.toString().trim();
@@ -88,7 +89,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // Bot日志
-              case var botLog when botLog.startsWith('bot/log/'):
+              case var botLog when botLog.startsWith('bots/log/'):
                 var id = botLog.split('/')[2];
                 gOnOpen = id;
                 var log = await Bot.log();
@@ -99,7 +100,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 启动Bot
-              case var botStart when botStart.startsWith('bot/run/'):
+              case var botStart when botStart.startsWith('bots/run/'):
                 var id = botStart.split('/')[2];
                 gOnOpen = id;
                 if (!Bot.status()) {
@@ -117,7 +118,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 停止Bot
-              case var botStop when botStop.startsWith('bot/stop/'):
+              case var botStop when botStop.startsWith('bots/stop/'):
                 var id = botStop.split('/')[2];
                 gOnOpen = id;
                 if (Bot.status()) {
@@ -135,7 +136,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 重启Bot
-              case var botRestart when botRestart.startsWith('bot/restart/'):
+              case var botRestart when botRestart.startsWith('bots/restart/'):
                 var id = botRestart.split('/')[2];
                 gOnOpen = id;
                 if (Bot.status()) {
@@ -156,7 +157,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 导入Bot
-              case var importBot when importBot.startsWith('bot/import'):
+              case var importBot when importBot.startsWith('bots/import'):
                 var bot = importBot.split('?data=')[1];
                 var botJson = jsonDecode(bot);
                 String name = botJson['name'];
@@ -173,6 +174,27 @@ var wsHandler = webSocketHandler((webSocket) async {
                 String res = jsonEncode(response);
                 webSocket.sink.add(res);
 
+              // 创建Bot
+              case var createBot when createBot.startsWith('bots/create'):
+                var bot = createBot.split('?data=')[1];
+                var botJson = jsonDecode(bot);
+                String name = botJson['name'];
+                String path = botJson['path'];
+                List drivers = botJson['drivers'];
+                List adapters = botJson['adapters'];
+                String template = botJson['template'];
+                String pluginDir = botJson['pluginDir'];
+                String venv = botJson['venv'];
+                String installDep = botJson['installDep'];
+                runInstall(path, name, drivers, adapters, template, pluginDir,
+                    venv, installDep);
+                Logger.info('Bot $name start creating...');
+                Map response = {
+                  "type": "createBot",
+                  "data": {"status": "Bot $name start creating..."}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
               // 未知命令
               default:
                 webSocket.sink.add('Unknown Command!');
@@ -195,7 +217,8 @@ var wsHandler = webSocketHandler((webSocket) async {
     cancelOnError: true,
     onDone: () {
       wsChannels.remove(webSocket);
-      Logger.info('WebSocket disconnected!Connections:${wsChannels.length}');
+      Logger.info(
+          'Websocket connection closed. ${wsChannels.length} connections now.');
     },
   );
 });

@@ -155,54 +155,30 @@ class Bot {
   }
 
   ///导入Bot
-  static import(name, path, withProtocol, protocolPath, cmd) {
+  static import(String name, String path, bool withProtocol,
+      String protocolPath, String cmd) {
     DateTime now = DateTime.now();
     String id = generateUUID();
     String time =
         "${now.year}年${now.month}月${now.day}日${now.hour}时${now.minute}分${now.second}秒";
     File cfgFile = File('bots/$id.json');
     String type = withProtocol ? 'deployed' : 'imported';
-    if (Platform.isWindows) {
-      String botInfo = '''
-{
-  "name": "$name",
-  "path": "${path.replaceAll('\\', '\\\\')}",
-  "time": "$time",
-  "id": "$id",
-  "isRunning": false,
-  "pid": "Null",
-  "type": "$type",
-  "protocolPath": "$protocolPath",
-  "cmd": "$cmd",
-  "protocolPid": "Null",
-  "protocolIsRunning": false
-}
-''';
-      cfgFile.writeAsStringSync(botInfo);
-      String echo = "echo 写入json";
-      return echo;
-    }
+    Map<String, dynamic> botInfo = {
+      "name": name,
+      "path": path,
+      "time": time,
+      "id": id,
+      "isRunning": false,
+      "pid": "Null",
+      "type": type,
+      "protocolPath": protocolPath,
+      "cmd": cmd,
+      "protocolPid": "Null",
+      "protocolIsRunning": false
+    };
 
-    if (Platform.isLinux || Platform.isMacOS) {
-      String botInfo = '''
-{
-  "name": "$name",
-  "path": "$path",
-  "time": "$time",
-  "id": "$id",
-  "isRunning": false,
-  "pid": "Null",
-  "type": "$type",
-  "protocolPath": "$protocolPath",
-  "cmd": "$cmd",
-  "protocolPid": "Null",
-  "protocolIsRunning": false
-}
-''';
-      cfgFile.writeAsStringSync(botInfo);
-      String echo = "echo 写入json";
-      return echo;
-    }
+    cfgFile.writeAsStringSync(jsonEncode(botInfo));
+    return "echo 写入json";
   }
 }
 

@@ -15,8 +15,8 @@ void runInstall(
     'echo 开始安装依赖...',
     DeployBot.install(path, name, venv, installDep),
     DeployBot.writePyProject(path, name, adapters, template, pluginDir),
-    DeployBot.writeENV(path, name, 8080, template, driver),
-    DeployBot.writebot(name, path, "default", "none", "none"),
+    DeployBot.writeENV(path, name, "8080", template, driver),
+    DeployBot.writeBot(name, path, "default", "none", "none"),
     'echo 安装完成，可退出'
   ];
 
@@ -24,9 +24,7 @@ void runInstall(
     List<String> args = command.split(' ');
     String executable = args.removeAt(0);
     Process process = await Process.start(executable, args, runInShell: true);
-    process.stdout
-        .transform(systemEncoding.decoder)
-        .listen((data) {
+    process.stdout.transform(systemEncoding.decoder).listen((data) {
       Map msg = {
         "type": "installBotLog",
         "data": data,
@@ -34,16 +32,14 @@ void runInstall(
       String res = jsonEncode(msg);
       sendMessageToClients(res);
     });
-    process.stderr
-        .transform(systemEncoding.decoder)
-        .listen((data) {
-          Map msg = {
-            "type": "installBotLog",
-            "data": data,
-          };
-          String res = jsonEncode(msg);
-          sendMessageToClients(res);
-        });
+    process.stderr.transform(systemEncoding.decoder).listen((data) {
+      Map msg = {
+        "type": "installBotLog",
+        "data": data,
+      };
+      String res = jsonEncode(msg);
+      sendMessageToClients(res);
+    });
     await process.exitCode;
   }
 }
