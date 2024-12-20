@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'core.dart';
 import 'global.dart';
-import 'userConfig.dart';
+import 'user_config.dart';
 import 'package:toml/toml.dart';
 
 class Bot {
@@ -180,6 +180,8 @@ class Bot {
     cfgFile.writeAsStringSync(jsonEncode(botInfo));
     return "echo 写入json";
   }
+
+
 }
 
 // 协议端相关操作

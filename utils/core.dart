@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'global.dart';
 import 'logger.dart';
-import 'userConfig.dart';
+import 'user_config.dart';
 
 class AgentMain {
   /// 软件版本

@@ -1,21 +1,30 @@
 import 'dart:convert';
 import 'dart:io';
 import 'core.dart';
-import 'deployBot.dart';
-import 'global.dart';
+import 'deploy_bot.dart';
 
 // 执行创建Bot命令
 void runInstall(
-    path, name, driver, adapters, template, pluginDir, venv, installDep) async {
+  String path,
+  String name,
+  drivers,
+  adapters,
+  String template,
+  String pluginDir,
+  bool venv,
+  bool installDep) async {
   List<String> commands = [
     'echo 开始创建Bot：$name',
     'echo 读取配置...',
+    'echo 创建目录...',
+    DeployBot.createFolder(path, name, template, pluginDir),
     DeployBot.createVENVEcho(path, name),
     DeployBot.createVENV(path, name, venv),
+    DeployBot.writeReq(path, name, drivers, adapters),
     'echo 开始安装依赖...',
     DeployBot.install(path, name, venv, installDep),
     DeployBot.writePyProject(path, name, adapters, template, pluginDir),
-    DeployBot.writeENV(path, name, "8080", template, driver),
+    DeployBot.writeENV(path, name, "8080", template, drivers),
     DeployBot.writeBot(name, path, "default", "none", "none"),
     'echo 安装完成，可退出'
   ];

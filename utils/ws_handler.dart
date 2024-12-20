@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:test/test.dart';
 import 'core.dart';
 import 'global.dart';
 import 'logger.dart';
 import 'manage.dart';
-import 'runCmd.dart';
+import 'run_cmd.dart';
 
 // WebSocket 服务
 var wsHandler = webSocketHandler((webSocket) async {
@@ -89,7 +90,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // Bot日志
-              case var botLog when botLog.startsWith('bots/log/'):
+              case var botLog when botLog.startsWith('bot/log/'):
                 var id = botLog.split('/')[2];
                 gOnOpen = id;
                 var log = await Bot.log();
@@ -100,7 +101,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 启动Bot
-              case var botStart when botStart.startsWith('bots/run/'):
+              case var botStart when botStart.startsWith('bot/run/'):
                 var id = botStart.split('/')[2];
                 gOnOpen = id;
                 if (!Bot.status()) {
@@ -118,7 +119,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 停止Bot
-              case var botStop when botStop.startsWith('bots/stop/'):
+              case var botStop when botStop.startsWith('bot/stop/'):
                 var id = botStop.split('/')[2];
                 gOnOpen = id;
                 if (Bot.status()) {
@@ -136,7 +137,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 重启Bot
-              case var botRestart when botRestart.startsWith('bots/restart/'):
+              case var botRestart when botRestart.startsWith('bot/restart/'):
                 var id = botRestart.split('/')[2];
                 gOnOpen = id;
                 if (Bot.status()) {
@@ -157,7 +158,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 break;
 
               // 导入Bot
-              case var importBot when importBot.startsWith('bots/import'):
+              case var importBot when importBot.startsWith('bot/import'):
                 var bot = importBot.split('?data=')[1];
                 var botJson = jsonDecode(bot);
                 String name = botJson['name'];
@@ -175,8 +176,9 @@ var wsHandler = webSocketHandler((webSocket) async {
                 webSocket.sink.add(res);
 
               // 创建Bot
-              case var createBot when createBot.startsWith('bots/create'):
+              case var createBot when createBot.startsWith('bot/create'):
                 var bot = createBot.split('?data=')[1];
+                Logger.debug(bot);
                 var botJson = jsonDecode(bot);
                 String name = botJson['name'];
                 String path = botJson['path'];
@@ -195,9 +197,59 @@ var wsHandler = webSocketHandler((webSocket) async {
                 };
                 String res = jsonEncode(response);
                 webSocket.sink.add(res);
+
+              // 删除Bot
+              case var deleteBot when deleteBot.startsWith('bot/remove/'):
+                var id = deleteBot.split('/')[2];
+                gOnOpen = id;
+                Bot.delete();
+                Logger.success('Bot $id removed!');
+                Map response = {
+                  "type": "deleteBot",
+                  "data": {"status": "Bot $id removed!"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 彻底删除Bot
+              case var deleteBot when deleteBot.startsWith('bot/delete/'):
+                var id = deleteBot.split('/')[2];
+                gOnOpen = id;
+                Bot.deleteForever();
+                Logger.success('Bot $id deleted!');
+                Map response = {
+                  "type": "deleteBot",
+                  "data": {"status": "Bot $id deleted!"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 重命名Bot
+              case var renameBot when renameBot.startsWith('bot/rename'):
+                var data = renameBot.split('?data=')[1];
+                var botJson = jsonDecode(data);
+                String id = botJson['id'];
+                String name = botJson['name'];
+                gOnOpen = id;
+                Bot.rename(name);
+                Logger.success('Bot $id renamed to $name!');
+                Map response = {
+                  "type": "renameBot",
+                  "data": {"status": "Bot $id renamed to $name!"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
               // 未知命令
               default:
-                webSocket.sink.add('Unknown Command!');
+                Map response = {
+                  "type": "unknownCommand",
+                  "data": "Unknown Command!"
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
                 break;
             }
           }

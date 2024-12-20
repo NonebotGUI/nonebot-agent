@@ -8,8 +8,8 @@ import '../utils/core.dart';
 import '../utils/global.dart';
 import '../utils/logger.dart';
 import '../utils/manage.dart';
-import '../utils/runCmd.dart';
-import '../utils/wsHandler.dart';
+import '../utils/run_cmd.dart';
+import '../utils/ws_handler.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -224,6 +224,44 @@ void main() {
       runInstall(
           path, name, drivers, adapters, template, pluginDir, venv, installDep);
       return Response.ok('{"status": "Bot $name start creating..."}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 删除 Bot
+    router.delete('/nbgui/v1/bot/remove/<id>',
+        (Request request, String id) async {
+      gOnOpen = id;
+      if (Bot.status()) {
+        Bot.stop();
+      }
+      Bot.delete();
+      Logger.success('Bot $id removed!');
+      return Response.ok('{"status": "Bot $id removed!"}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 永久删除 Bot
+    router.delete('/nbgui/v1/bot/delete/<id>',
+        (Request request, String id) async {
+      gOnOpen = id;
+      if (Bot.status()) {
+        Bot.stop();
+      }
+      Bot.deleteForever();
+      Logger.success('Bot $id deleted!');
+      return Response.ok('{"status": "Bot $id deleted!"}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 重命名 Bot
+    router.post('/nbgui/v1/bot/rename/<id>',
+        (Request request, String id) async {
+      final body = await request.readAsString();
+      var bot = jsonDecode(body);
+      String name = bot['name'];
+      Bot.rename(name);
+      Logger.success('Bot $id renamed to $name!');
+      return Response.ok('{"status": "Bot $id renamed to $name!"}',
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 

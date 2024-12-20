@@ -1,24 +1,20 @@
 import 'dart:io';
 import 'core.dart';
 import 'global.dart';
-import 'userConfig.dart';
+import 'user_config.dart';
 
 ///部署Bot时的相关操作
 class DeployBot {
   ///写入requirements.txt
-  static writeReq(String path, String name, List<String> drivers, String adapter) {
-    String driverList =
-        drivers.map((d) => 'nonebot2[$d]').join('\n');
+  static writeReq(String path, String name, drivers, adapters) {
+    String driverList = drivers
+        .map((d) => 'nonebot2[${d.toString().toLowerCase()}]')
+        .join('\n');
+    String adapterList = adapters.join('\n');
 
-    String adapterList = RegExp(r'\(([^)]+)\)')
-        .allMatches(adapter)
-        .map((match) => match.group(1))
-        .join('\n')
-        .replaceAll('nonebot-adapter-onebot.v11', 'nonebot-adapter-onebot')
-        .replaceAll('nonebot-adapter-onebot.v12', 'nonebot-adapter-onebot');
-
-    File('$path/$name/requirements.txt')
-        .writeAsStringSync('$driverList\n$adapterList');
+    File('$path/$name/requirements.txt').writeAsStringSync(
+        '$driverList\n${adapterList.replaceAll('.v11', '').replaceAll('.v12', '')}');
+    return 'echo 写入依赖...';
   }
 
   ///安装依赖
@@ -75,12 +71,15 @@ class DeployBot {
           : '$path/$name/src/plugins';
       Directory(pluginsPath).createSync(recursive: true);
     }
+    return 'echo 创建目录';
   }
 
   ///写入.env文件
   static writeENV(
-      String path, String name, String port, String template, List<String> drivers) {
-    String driverlist = drivers.map((driver) => '~$driver').join('+');
+      String path, String name, String port, String template, List drivers) {
+    String driverlist = drivers
+        .map((driver) => '~${driver.toString().toLowerCase()}')
+        .join('+');
     String envContent;
     if (template == 'bootstrap(初学者或用户)') {
       envContent = port.isEmpty
@@ -98,8 +97,8 @@ class DeployBot {
   }
 
   ///写入pyproject.toml
-  static writePyProject(String path, String name, List<String> adapters,
-      String template, String pluginDir) {
+  static writePyProject(
+      path, name, adapters, String template, String pluginDir) {
     String adapterList = adapters
         .map((adapter) =>
             '{ name = "${adapter.replaceAll('nonebot-adapter-', '').replaceAll('.', ' ')}", module_name = "${adapter.replaceAll('-', '.').replaceAll('adapter', 'adapters')}" }')
@@ -140,7 +139,7 @@ class DeployBot {
   "path": "$path${Platform.isWindows ? '\\\\' : '/'}$name",
   "time": "$time",
   "id": "$id",
-  "isRunning": "false",
+  "isRunning": false,
   "pid": "Null",
   "type": "$type",
   "protocolPath": "$protocolPath",
