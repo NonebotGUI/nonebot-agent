@@ -26,14 +26,14 @@ class AgentMain {
       file.createSync();
       const String content = '''
 {
-  "host": "127.0.0.1",
-  "httpPort": 2519,
-  "wsPort": 2520,
+  "host": "0.0.0.0",
+  "port": 2519,
   "token": "",
   "freeText": "Mem",
   "python":"default",
   "nbcli":"default",
-  "checkUpdate": true,
+  "color":"light",
+  "checkUpdate": true
 }
 ''';
       file.writeAsStringSync(content);
