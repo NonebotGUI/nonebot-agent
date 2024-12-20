@@ -20,7 +20,7 @@ class AgentMain {
 
   ///初始化应用程序
   static void init() async {
-    File file = File('agent.json');
+    File file = File('config.json');
     if (!file.existsSync()) {
       Logger.warn("Config file not found, creating a new one...");
       file.createSync();

@@ -3,7 +3,6 @@
 .dart_tool/
 instance/
 cutl-test.sh
-agent.json
+config.json
 bots/
-ws.dart
 pubspec.lock
