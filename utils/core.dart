@@ -8,7 +8,7 @@ import 'user_config.dart';
 class AgentMain {
   /// 软件版本
   static String version() {
-    return '0.1.0';
+    return 'pre-0.1.0';
   }
 
   /// 初始化用户配置文件

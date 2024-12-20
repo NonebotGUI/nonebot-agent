@@ -17,7 +17,7 @@ void main() {
     await Future.delayed(const Duration(seconds: 3));
     Logger.info('Welcome to NoneBot Agent!');
     Logger.info('By 【夜风】NightWind(2125714976@qq.com)');
-    Logger.info('Release under the GPL-3 License.');
+    Logger.info('Released under the GPL-3 License.');
     Logger.info('Version: ${AgentMain.version()}');
     // 初始化服务器配置
     AgentMain.init();

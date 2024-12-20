@@ -1,0 +1,160 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Compile
+        run: dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-windows.exe
+
+      - name: Upload Dist Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows Artifact(Dist)
+          path: dist
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            submodules: true
+        - name: Setup Dart
+          uses: dart-lang/setup-dart@v1
+  
+        - name: Compile
+          run: dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux
+  
+        - name: Upload Dist Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: Linux Artifact(Dist)
+            path: dist
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            submodules: true
+        - name: Setup Dart
+          uses: dart-lang/setup-dart@v1
+  
+        - name: Compile
+          run: dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-macos.exe
+  
+        - name: Upload Dist Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: MacOS Artifact(Dist)
+            path: dist
+
+
+#   publish_releases:
+#     name: publish
+#     runs-on: ubuntu-latest
+#     needs:
+#       - windows
+#       - linux
+#       - macos
+
+#     steps:
+#       - name: Checkout Repo
+#         uses: actions/checkout@v4
+#       - name: Fetch Version
+#         run: |
+#           sudo snap install yq
+#           nbgui_version=$(yq eval '.version' pubspec.yaml)
+#           echo "NBGUI_VERSION=$nbgui_version" >> $GITHUB_ENV
+
+#       - name: Install Dependencies
+#         run: |
+#           sudo apt update
+#           sudo apt install zip curl -y
+
+
+#       - name: Download Build Artifact(Windows)
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: "Windows Artifact(Dist)"
+#           path: dist/
+#       - name: Download Build Artifact(Linux)
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: "Linux Artifact(Dist)"
+#           path: dist/
+#       - name: Download Build Artifact(MacOS)
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: "MacOS Artifact(Dist)"
+#           path: dist/
+#       - name: Rename
+#         run: |
+#           mv ./dist/${{ env.NBGUI_VERSION }}/*.exe ./dist/${{ env.NBGUI_VERSION }}/windows-${{ env.NBGUI_VERSION }}-setup.exe
+#           mv ./dist/${{ env.NBGUI_VERSION }}/*.zip ./dist/${{ env.NBGUI_VERSION }}/windows-${{ env.NBGUI_VERSION }}.zip
+#           mv ./dist/${{ env.NBGUI_VERSION }}/*.deb ./dist/${{ env.NBGUI_VERSION }}/linux-${{ env.NBGUI_VERSION }}.deb
+#           mv ./dist/${{ env.NBGUI_VERSION }}/*.rpm ./dist/${{ env.NBGUI_VERSION }}/linux-${{ env.NBGUI_VERSION }}.rpm
+#           mv ./dist/${{ env.NBGUI_VERSION }}/*.AppImage ./dist/${{ env.NBGUI_VERSION }}/linux-${{ env.NBGUI_VERSION }}.AppImage
+#           mv ./dist/${{ env.NBGUI_VERSION }}/*.dmg ./dist/${{ env.NBGUI_VERSION }}/macos-${{ env.NBGUI_VERSION }}.dmg
+#       - name: Release
+#         uses: softprops/action-gh-release@v2
+#         with:
+#           tag_name: v${{ env.NBGUI_VERSION }}
+#           body_path: RELEASE_CHANGELOG.md
+#           prerelease: false
+#           draft: false
+#           generate_release_notes: true
+#           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+#           files: |
+#             ./dist/${{ env.NBGUI_VERSION }}/windows-${{ env.NBGUI_VERSION }}-setup.exe
+#             ./dist/${{ env.NBGUI_VERSION }}/windows-${{ env.NBGUI_VERSION }}.zip
+#             ./dist/${{ env.NBGUI_VERSION }}/linux-${{ env.NBGUI_VERSION }}.deb
+#             ./dist/${{ env.NBGUI_VERSION }}/linux-${{ env.NBGUI_VERSION }}.rpm
+#             ./dist/${{ env.NBGUI_VERSION }}/linux-${{ env.NBGUI_VERSION }}.AppImage
+#             ./dist/${{ env.NBGUI_VERSION }}/macos-${{ env.NBGUI_VERSION }}.dmg
+
+#       - name: Update website
+#         run: |
+#             sed -i 's/NBGUI.VER/${{ env.NBGUI_VERSION }}/g' website/index.html
+#             change_date=$(date +%Y.%m.%d)
+#             sed -i "s/NBGUI.DATE/$change_date/g" website/index.html
+#             sed -i -e ':a;N;$!ba;s/\n/<br>/g' changelog.txt
+#             change=$(cat changelog.txt)
+#             sed -i "s/NBGUI.CHANGELOG/$(printf "%s" "$change" | sed 's/[^[:print:]]/\\&/g')/g" website/index.html
+
+#       - name: Zip
+#         run: zip -r nbgui.zip website/*
+
+#       - name: Upload Website To Netlify
+#         run: |
+#           curl -H "Content-Type: application/zip" \
+#             -H "Authorization: Bearer ${{ secrets.NETLIFY_TOKEN }}" \
+#             --data-binary "@nbgui.zip" \
+#             "https://api.netlify.com/api/v1/sites/${{ secrets.NETLIFY_SITEID }}/deploys"
+#         env:
+#           NETLIFY_SITEID: ${{ secrets.NETLIFY_SITEID }}
+#           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+
+
+
