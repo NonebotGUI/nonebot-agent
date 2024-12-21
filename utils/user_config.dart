@@ -3,15 +3,14 @@ import 'dart:io';
 
 /// 用户配置文件
 class UserConfig {
-  static final File _configFile = File('agent.json');
+  static final File _configFile = File('config.json');
 
   /// 初始化用户配置文件
   static Map<String, dynamic> _config() {
-    File file = File('agent.json');
+    File file = File('config.json');
     String content = file.readAsStringSync();
     return jsonDecode(content);
   }
-
 
   /// 是否自动检查更新
   static bool checkUpdate() {
