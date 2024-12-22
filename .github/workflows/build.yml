@@ -101,11 +101,11 @@ jobs:
           nbgui_version=$(yq eval '.version' pubspec.yaml)
           echo "NBGUI_VERSION=$nbgui_version" >> $GITHUB_ENV
 
-          - name: Download Artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: "agent-${{ matrix.os }}"
-            path: dist/
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: "agent-${{ matrix.os }}"
+          path: dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
