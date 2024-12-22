@@ -31,8 +31,8 @@ jobs:
       - name: Upload Dist Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Windows Artifact(Dist)
-          path: dist
+          name: agent-windows
+          path: dist/agent-windows.exe
 
   linux:
     runs-on: ubuntu-latest
@@ -53,8 +53,8 @@ jobs:
         - name: Upload Dist Artifact
           uses: actions/upload-artifact@v4
           with:
-            name: Linux Artifact(Dist)
-            path: dist
+            name: agent-linux
+            path: dist/agent-linux
 
   macos:
     runs-on: macos-latest
@@ -76,8 +76,8 @@ jobs:
         - name: Upload Dist Artifact
           uses: actions/upload-artifact@v4
           with:
-            name: MacOS Artifact(Dist)
-            path: dist
+            name: agent-macos
+            path: dist/agent-macos
 
 
   publish_releases:
@@ -90,7 +90,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [Windows, Linux, MacOS]
+        os: [windows, linux, macos]
 
     steps:
       - name: Checkout Repo
@@ -101,17 +101,11 @@ jobs:
           nbgui_version=$(yq eval '.version' pubspec.yaml)
           echo "NBGUI_VERSION=$nbgui_version" >> $GITHUB_ENV
 
-      - name: Download Self_-host Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: "${{ matrix.os }} Artifact(Dist)"
-          path: dist/
-
-      - name: Download Dashboard Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: "Dashboard"
-          path: dist/
+          - name: Download Artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: "agent-${{ matrix.os }}"
+            path: dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -123,9 +117,9 @@ jobs:
           generate_release_notes: true
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
           files: |
-            dist/agent-windows.exe
-            dist/agent-linux
-            dist/agent-macos
-            dist/dashboard.zip
+            dist/${{ env.NBGUI_VERSION }}/agent-windows.exe
+            dist/${{ env.NBGUI_VERSION }}/agent-linux
+            dist/${{ env.NBGUI_VERSION }}/agent-macos
+            dist/${{ env.NBGUI_VERSION }}/dashboard.zip
 
 
