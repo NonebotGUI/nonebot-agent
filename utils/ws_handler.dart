@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:test/test.dart';
 import 'core.dart';
 import 'global.dart';
 import 'logger.dart';
@@ -178,7 +177,6 @@ var wsHandler = webSocketHandler((webSocket) async {
               // 创建Bot
               case var createBot when createBot.startsWith('bot/create'):
                 var bot = createBot.split('?data=')[1];
-                Logger.debug(bot);
                 var botJson = jsonDecode(bot);
                 String name = botJson['name'];
                 String path = botJson['path'];
@@ -259,7 +257,7 @@ var wsHandler = webSocketHandler((webSocket) async {
         }
       } catch (e) {
         String res = '{"type": "Unauthorized", "data": "401 Unauthorized!"}';
-        webSocket.sink.add('{"error": "401 Unauthorized!"}');
+        webSocket.sink.add(res);
       }
     },
     onError: (error, stackTrace) {
