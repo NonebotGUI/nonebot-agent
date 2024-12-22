@@ -117,9 +117,9 @@ jobs:
           generate_release_notes: true
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
           files: |
-            dist/${{ env.NBGUI_VERSION }}/agent-windows.exe
-            dist/${{ env.NBGUI_VERSION }}/agent-linux
-            dist/${{ env.NBGUI_VERSION }}/agent-macos
-            dist/${{ env.NBGUI_VERSION }}/dashboard.zip
+            dist/agent-windows.exe
+            dist/agent-linux
+            dist/agent-macos
+            dist/dashboard.zip
 
 
