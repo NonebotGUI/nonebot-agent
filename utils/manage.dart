@@ -36,9 +36,7 @@ class Bot {
   static Future<String> log() async {
     File file = File('${Bot.path()}/nbgui_stdout.log');
     if (file.existsSync()) {
-      List<int> bytes = file.readAsBytesSync();
-      String content = const Utf8Decoder().convert(bytes);
-      return content;
+      return file.readAsStringSync(encoding: systemEncoding);
     } else {
       return '[INFO] Welcome to NoneBot WebUI!';
     }
