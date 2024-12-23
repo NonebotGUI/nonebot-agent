@@ -36,7 +36,7 @@ class Bot {
   static Future<String> log() async {
     File file = File('${Bot.path()}/nbgui_stdout.log');
     if (file.existsSync()) {
-      return file.readAsStringSync(encoding: systemEncoding);
+      return file.readAsStringSync();
     } else {
       return '[INFO] Welcome to NoneBot WebUI!';
     }
@@ -85,12 +85,12 @@ class Bot {
     final errorSink = stderr.openWrite();
 
     // 直接监听原始字节输出
-    process.stdout.listen((data) {
-      outputSink.add(data);
+    process.stdout.transform(systemEncoding.decoder).listen((data) {
+      outputSink.add(utf8.encode(data));
     });
 
-    process.stderr.listen((data) {
-      errorSink.add(data);
+    process.stderr.transform(systemEncoding.decoder).listen((data) {
+      errorSink.add(utf8.encode(data));
     });
   }
 
