@@ -36,7 +36,9 @@ class Bot {
   static Future<String> log() async {
     File file = File('${Bot.path()}/nbgui_stdout.log');
     if (file.existsSync()) {
-      return file.readAsStringSync();
+      List<int> bytes = file.readAsBytesSync();
+      String content = const Utf8Decoder().convert(bytes);
+      return content;
     } else {
       return '[INFO] Welcome to NoneBot WebUI!';
     }
@@ -180,8 +182,6 @@ class Bot {
     cfgFile.writeAsStringSync(jsonEncode(botInfo));
     return "echo 写入json";
   }
-
-
 }
 
 // 协议端相关操作

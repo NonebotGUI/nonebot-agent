@@ -4,19 +4,11 @@ import 'core.dart';
 import 'deploy_bot.dart';
 
 // 执行创建Bot命令
-void runInstall(
-  String path,
-  String name,
-  drivers,
-  adapters,
-  String template,
-  String pluginDir,
-  bool venv,
-  bool installDep) async {
+void runInstall(String path, String name, drivers, adapters, String template,
+    String pluginDir, bool venv, bool installDep) async {
   List<String> commands = [
     'echo 开始创建Bot：$name',
     'echo 读取配置...',
-    'echo 创建目录...',
     DeployBot.createFolder(path, name, template, pluginDir),
     DeployBot.createVENVEcho(path, name),
     DeployBot.createVENV(path, name, venv),
