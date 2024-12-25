@@ -8,7 +8,7 @@ import 'user_config.dart';
 class AgentMain {
   /// 软件版本
   static String version() {
-    return 'pre-0.1.1+2';
+    return 'pre-0.1.2';
   }
 
   /// 初始化用户配置文件
@@ -30,6 +30,7 @@ class AgentMain {
   "port": 2519,
   "token": "",
   "freeText": "Mem",
+  "logMaxLines": 75,
   "python":"default",
   "nbcli":"default",
   "color":"light",

@@ -36,7 +36,11 @@ class Bot {
   static Future<String> log() async {
     File file = File('${Bot.path()}/nbgui_stdout.log');
     if (file.existsSync()) {
-      return file.readAsStringSync(encoding: systemEncoding);
+      List<String> lines = file.readAsLinesSync(encoding: systemEncoding);
+      int start = lines.length > UserConfig.logMaxLines()
+          ? lines.length - UserConfig.logMaxLines()
+          : 0;
+      return lines.sublist(start).join('\n');
     } else {
       return '[INFO] Welcome to NoneBot WebUI!';
     }

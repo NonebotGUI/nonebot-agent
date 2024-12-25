@@ -70,4 +70,23 @@ class UserConfig {
     jsonMap['nbcli'] = nbcliPath;
     _configFile.writeAsStringSync(jsonEncode(jsonMap));
   }
+
+  /// Bot日志最大行数
+  static int logMaxLines() {
+    Map<String, dynamic> jsonMap = _config();
+    if (jsonMap.containsKey("logMaxLines")) {
+      int logMaxLines = jsonMap['logMaxLines'];
+      return logMaxLines;
+    } else {
+      setLogMaxLines(75);
+      return 75;
+    }
+  }
+
+  /// 设置Bot日志最大行数
+  static void setLogMaxLines(logMaxLines) {
+    Map<String, dynamic> jsonMap = _config();
+    jsonMap['logMaxLines'] = logMaxLines;
+    _configFile.writeAsStringSync(jsonEncode(jsonMap));
+  }
 }
