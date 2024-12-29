@@ -29,7 +29,7 @@ _✨ 使用 API 来管理你的 NoneBot ✨_
 
 ## ⚙️安装
 
-即刻前往：[Release](https://github.com/NonebotGUI/nonebot-flutter-gui/releases)
+即刻前往：[Release](https://github.com/NonebotGUI/nonebot-agent/releases)
 
 ## 配置
 
