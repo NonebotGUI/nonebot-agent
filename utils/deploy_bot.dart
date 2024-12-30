@@ -136,7 +136,7 @@ class DeployBot {
     String botInfo = '''
 {
   "name": "$name",
-  "path": "${path.replaceAll('\\', "\\\\")}}${Platform.isWindows ? '\\\\' : '/'}$name",
+  "path": "${path.replaceAll('\\', "\\\\")}${Platform.isWindows ? '\\\\' : '/'}$name",
   "time": "$time",
   "id": "$id",
   "isRunning": false,
