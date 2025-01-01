@@ -88,9 +88,6 @@ jobs:
       - linux
       - macos
 
-    strategy:
-      matrix:
-        os: [windows, linux, macos]
 
     steps:
       - name: Checkout Repo
@@ -101,10 +98,23 @@ jobs:
           nbgui_version=$(yq eval '.version' pubspec.yaml)
           echo "NBGUI_VERSION=$nbgui_version" >> $GITHUB_ENV
 
-      - name: Download Artifact
+      - name: Download Artifact (Windows)
         uses: actions/download-artifact@v4
         with:
-          name: "agent-${{ matrix.os }}"
+          name: "agent-windows"
+          path: dist/
+
+
+      - name: Download Artifact (Linux)
+        uses: actions/download-artifact@v4
+        with:
+          name: "agent-linux"
+          path: dist/
+
+      - name: Download Artifact (MacOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: "agent-macos"
           path: dist/
 
       - name: Release
