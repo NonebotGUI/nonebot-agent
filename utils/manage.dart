@@ -6,35 +6,33 @@ import 'user_config.dart';
 import 'package:toml/toml.dart';
 
 class Bot {
-  static final File _configFile = File('bots/$gOnOpen.json');
-
-  static Map<String, dynamic> _config() {
-    File file = File('bots/$gOnOpen.json');
+  static Map<String, dynamic> _config(id) {
+    File file = File('bots/$id.json');
     String content = file.readAsStringSync();
     return jsonDecode(content);
   }
 
   /// 获取Bot名称
-  static String name() {
-    Map<String, dynamic> jsonMap = _config();
+  static String name(id) {
+    Map<String, dynamic> jsonMap = _config(id);
     return jsonMap['name'].toString();
   }
 
   /// 获取Bot的创建时间
-  static String time() {
-    Map<String, dynamic> jsonMap = _config();
+  static String time(id) {
+    Map<String, dynamic> jsonMap = _config(id);
     return jsonMap['time'].toString();
   }
 
   /// 获取Bot的路径
-  static String path() {
-    Map<String, dynamic> jsonMap = _config();
+  static String path(id) {
+    Map<String, dynamic> jsonMap = _config(id);
     return jsonMap['path'].toString();
   }
 
   /// 获取Bot日志
-  static Future<String> log() async {
-    File file = File('${Bot.path()}/nbgui_stdout.log');
+  static Future<String> log(id) async {
+    File file = File('${Bot.path(id)}/nbgui_stdout.log');
     if (file.existsSync()) {
       List<String> lines = file.readAsLinesSync(encoding: systemEncoding);
       int start = lines.length > UserConfig.logMaxLines()
@@ -47,14 +45,14 @@ class Bot {
   }
 
   /// 获取Bot运行状态
-  static bool status() {
-    Map<String, dynamic> jsonMap = _config();
+  static bool status(id) {
+    Map<String, dynamic> jsonMap = _config(id);
     return jsonMap['isRunning'];
   }
 
   /// 获取Bot Pid
-  static String pid() {
-    Map<String, dynamic> jsonMap = _config();
+  static String pid(id) {
+    Map<String, dynamic> jsonMap = _config(id);
     return jsonMap['pid'].toString();
   }
 
@@ -71,12 +69,12 @@ class Bot {
   }
 
   /// 唤起Bot进程
-  static Future run() async {
-    File cfgFile = File('bots/$gOnOpen.json');
-    final stdout = File('${Bot.path()}/nbgui_stdout.log');
-    final stderr = File('${Bot.path()}/nbgui_stderr.log');
+  static Future run(id) async {
+    File cfgFile = File('bots/$id.json');
+    final stdout = File('${Bot.path(id)}/nbgui_stdout.log');
+    final stderr = File('${Bot.path(id)}/nbgui_stderr.log');
     Process process = await Process.start('${UserConfig.nbcliPath()}', ['run'],
-        workingDirectory: Bot.path());
+        workingDirectory: Bot.path(id));
     int pid = process.pid;
 
     /// 重写配置文件来更新状态
@@ -99,9 +97,9 @@ class Bot {
   }
 
   ///结束bot进程
-  static stop() async {
+  static stop(id) async {
     //读取配置文件
-    File cfgFile = File('bots/$gOnOpen.json');
+    File cfgFile = File('bots/$id.json');
     Map botInfo = json.decode(cfgFile.readAsStringSync());
     String pidString = botInfo['pid'].toString();
     int pid = int.parse(pidString);
@@ -114,23 +112,23 @@ class Bot {
     //如果平台为Windows则释放端口
     if (Platform.isWindows) {
       await Process.start(
-          "taskkill.exe", ['/f', '/pid', Bot.pypid(Bot.path()).toString()],
+          "taskkill.exe", ['/f', '/pid', Bot.pypid(Bot.path(id)).toString()],
           runInShell: true);
     }
   }
 
   ///重命名Bot
-  static void rename(name) {
+  static void rename(name, id) {
     // 重写配置文件
-    File botcfg = File('bots/$gOnOpen.json');
+    File botcfg = File('bots/$id.json');
     Map<String, dynamic> jsonMap = jsonDecode(botcfg.readAsStringSync());
     jsonMap['name'] = name;
     botcfg.writeAsStringSync(jsonEncode(jsonMap));
   }
 
   ///获取stderr.log
-  static String stderr() {
-    File file = File('${Bot.path()}/nbgui_stderr.log');
+  static String stderr(id) {
+    File file = File('${Bot.path(id)}/nbgui_stderr.log');
     if (file.existsSync()) {
       return file.readAsStringSync();
     } else {
@@ -139,23 +137,22 @@ class Bot {
   }
 
   ///清空stderr.log
-  static void deleteStderr() {
-    File file = File('${Bot.path()}/nbgui_stderr.log');
+  static void deleteStderr(id) {
+    File file = File('${Bot.path(id)}/nbgui_stderr.log');
     file.writeAsStringSync('');
   }
 
   ///删除Bot
-  static void delete() async {
-    File('bots/$gOnOpen.json').delete();
+  static void delete(id) async {
+    File('bots/$id.json').delete();
     gOnOpen = '';
   }
 
   ///彻底删除Bot
-  static void deleteForever() async {
-    String path = Bot.path();
+  static void deleteForever(id) async {
+    String path = Bot.path(id);
     Directory(path).delete(recursive: true);
-    _configFile.delete();
-    gOnOpen = '';
+    File('bots/$id.json').delete();
   }
 
   ///导入Bot
@@ -341,9 +338,9 @@ class Cli {
 ///插件
 class Plugin {
   ///禁用插件
-  static disable(name) {
-    File disable = File('${Bot.path()}/.disabled_plugins');
-    File pyprojectFile = File('${Bot.path()}/pyproject.toml');
+  static disable(name, id) {
+    File disable = File('${Bot.path(id)}/.disabled_plugins');
+    File pyprojectFile = File('${Bot.path(id)}/pyproject.toml');
     String pyprojectContent = pyprojectFile.readAsStringSync();
     List<String> linesWithoutComments = pyprojectContent
         .split('\n')
@@ -375,9 +372,9 @@ class Plugin {
   }
 
   ///启用插件
-  static enable(name) {
-    File disable = File('${Bot.path()}/.disabled_plugins');
-    File pyprojectFile = File('${Bot.path()}/pyproject.toml');
+  static enable(name, id) {
+    File disable = File('${Bot.path(id)}/.disabled_plugins');
+    File pyprojectFile = File('${Bot.path(id)}/pyproject.toml');
     String pyprojectContent = pyprojectFile.readAsStringSync();
     var toml = TomlDocument.parse(pyprojectContent).toMap();
     var nonebot = toml['tool']['nonebot'];

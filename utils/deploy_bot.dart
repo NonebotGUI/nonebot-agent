@@ -23,8 +23,7 @@ class DeployBot {
 
     String requirementsPath = '$path/$name/requirements.txt';
     if (!installDep) {
-      File(requirementsPath).copySync(requirementsPath);
-      return 'echo 跳过依赖安装，将requirements.txt复制至$path/$name下';
+      return 'echo 跳过依赖安装...';
     }
 
     String pipInstallCmd;

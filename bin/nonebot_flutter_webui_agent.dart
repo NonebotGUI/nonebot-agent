@@ -129,17 +129,15 @@ void main() {
 
     // 获取 Bot 日志
     router.get('/nbgui/v1/bot/log/<id>', (Request request, String id) async {
-      gOnOpen = id;
-      var log = await Bot.log();
+      var log = await Bot.log(id);
       return Response.ok(log,
           headers: {'Content-Type': 'text/plain'}, encoding: utf8);
     });
 
     // 启动 Bot
     router.get('/nbgui/v1/bot/run/<id>', (Request request, String id) async {
-      gOnOpen = id;
-      if (!Bot.status()) {
-        Bot.run();
+      if (!Bot.status(id)) {
+        Bot.run(id);
         Logger.success('Bot $id started!');
         return Response.ok('{"status": "Bot $id started!"}',
             headers: {'Content-Type': 'application/json'}, encoding: utf8);
@@ -155,9 +153,8 @@ void main() {
 
     // 停止 Bot
     router.get('/nbgui/v1/bot/stop/<id>', (Request request, String id) async {
-      gOnOpen = id;
-      if (Bot.status()) {
-        Bot.stop();
+      if (Bot.status(id)) {
+        Bot.stop(id);
         Logger.success('Bot $id stopped!');
         return Response.ok('{"status": "Bot $id stopped!"}',
             headers: {'Content-Type': 'application/json'}, encoding: utf8);
@@ -175,10 +172,10 @@ void main() {
     router.get('/nbgui/v1/bot/restart/<id>',
         (Request request, String id) async {
       gOnOpen = id;
-      if (Bot.status()) {
-        Bot.stop();
+      if (Bot.status(id)) {
+        Bot.stop(id);
         await Future.delayed(const Duration(seconds: 1), () {
-          Bot.run();
+          Bot.run(id);
         });
         Logger.success('Bot $id restarted!');
         return Response.ok('{"status": "Bot $id restarted!"}',
@@ -231,10 +228,10 @@ void main() {
     router.delete('/nbgui/v1/bot/remove/<id>',
         (Request request, String id) async {
       gOnOpen = id;
-      if (Bot.status()) {
-        Bot.stop();
+      if (Bot.status(id)) {
+        Bot.stop(id);
       }
-      Bot.delete();
+      Bot.delete(id);
       Logger.success('Bot $id removed!');
       return Response.ok('{"status": "Bot $id removed!"}',
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
@@ -244,10 +241,10 @@ void main() {
     router.delete('/nbgui/v1/bot/delete/<id>',
         (Request request, String id) async {
       gOnOpen = id;
-      if (Bot.status()) {
-        Bot.stop();
+      if (Bot.status(id)) {
+        Bot.stop(id);
       }
-      Bot.deleteForever();
+      Bot.deleteForever(id);
       Logger.success('Bot $id deleted!');
       return Response.ok('{"status": "Bot $id deleted!"}',
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
@@ -259,7 +256,7 @@ void main() {
       final body = await request.readAsString();
       var bot = jsonDecode(body);
       String name = bot['name'];
-      Bot.rename(name);
+      Bot.rename(name, id);
       Logger.success('Bot $id renamed to $name!');
       return Response.ok('{"status": "Bot $id renamed to $name!"}',
           headers: {'Content-Type': 'application/json'}, encoding: utf8);

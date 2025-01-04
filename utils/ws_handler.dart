@@ -91,8 +91,7 @@ var wsHandler = webSocketHandler((webSocket) async {
               // Bot日志
               case var botLog when botLog.startsWith('bot/log/'):
                 var id = botLog.split('/')[2];
-                gOnOpen = id;
-                var log = await Bot.log();
+                var log = await Bot.log(id);
                 //
                 Map response = {"type": "botLog", "data": log};
                 String res = jsonEncode(response);
@@ -102,9 +101,8 @@ var wsHandler = webSocketHandler((webSocket) async {
               // 启动Bot
               case var botStart when botStart.startsWith('bot/run/'):
                 var id = botStart.split('/')[2];
-                gOnOpen = id;
-                if (!Bot.status()) {
-                  Bot.run();
+                if (!Bot.status(id)) {
+                  Bot.run(id);
                   Logger.success('Bot $id started!');
                   String res =
                       '{"type": "startBot", "data": "{\\"status\\": \\"Bot $id started!\\"}"}';
@@ -120,9 +118,8 @@ var wsHandler = webSocketHandler((webSocket) async {
               // 停止Bot
               case var botStop when botStop.startsWith('bot/stop/'):
                 var id = botStop.split('/')[2];
-                gOnOpen = id;
-                if (Bot.status()) {
-                  Bot.stop();
+                if (Bot.status(id)) {
+                  Bot.stop(id);
                   Logger.success('Bot $id stopped!');
                   String res =
                       '{"type": "stopBot", "data": "{\\"status\\": \\"Bot $id stopped!\\"}"}';
@@ -139,10 +136,10 @@ var wsHandler = webSocketHandler((webSocket) async {
               case var botRestart when botRestart.startsWith('bot/restart/'):
                 var id = botRestart.split('/')[2];
                 gOnOpen = id;
-                if (Bot.status()) {
-                  Bot.stop();
+                if (Bot.status(id)) {
+                  Bot.stop(id);
                   await Future.delayed(const Duration(seconds: 1), () {
-                    Bot.run();
+                    Bot.run(id);
                   });
                   Logger.success('Bot $id restarted!');
                   String res =
@@ -200,7 +197,7 @@ var wsHandler = webSocketHandler((webSocket) async {
               case var deleteBot when deleteBot.startsWith('bot/remove/'):
                 var id = deleteBot.split('/')[2];
                 gOnOpen = id;
-                Bot.delete();
+                Bot.delete(id);
                 Logger.success('Bot $id removed!');
                 Map response = {
                   "type": "deleteBot",
@@ -214,7 +211,7 @@ var wsHandler = webSocketHandler((webSocket) async {
               case var deleteBot when deleteBot.startsWith('bot/delete/'):
                 var id = deleteBot.split('/')[2];
                 gOnOpen = id;
-                Bot.deleteForever();
+                Bot.deleteForever(id);
                 Logger.success('Bot $id deleted!');
                 Map response = {
                   "type": "deleteBot",
@@ -231,7 +228,7 @@ var wsHandler = webSocketHandler((webSocket) async {
                 String id = botJson['id'];
                 String name = botJson['name'];
                 gOnOpen = id;
-                Bot.rename(name);
+                Bot.rename(name, id);
                 Logger.success('Bot $id renamed to $name!');
                 Map response = {
                   "type": "renameBot",
