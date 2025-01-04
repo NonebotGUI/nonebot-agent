@@ -56,28 +56,28 @@ jobs:
             name: agent-linux
             path: dist/agent-linux
 
-  macos:
-    runs-on: macos-latest
+  # macos:
+  #   runs-on: macos-latest
 
-    steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            submodules: true
-        - name: Setup Dart
-          uses: dart-lang/setup-dart@v1
+  #   steps:
+  #       - name: Checkout
+  #         uses: actions/checkout@v4
+  #         with:
+  #           submodules: true
+  #       - name: Setup Dart
+  #         uses: dart-lang/setup-dart@v1
   
-        - name: Compile
-          run: |
-            mkdir dist
-            dart pub get
-            dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-macos
+  #       - name: Compile
+  #         run: |
+  #           mkdir dist
+  #           dart pub get
+  #           dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-macos
   
-        - name: Upload Dist Artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: agent-macos
-            path: dist/agent-macos
+  #       - name: Upload Dist Artifact
+  #         uses: actions/upload-artifact@v4
+  #         with:
+  #           name: agent-macos
+  #           path: dist/agent-macos
 
 
   publish_releases:
@@ -86,7 +86,7 @@ jobs:
     needs:
       - windows
       - linux
-      - macos
+      # - macos
 
 
     steps:
@@ -111,11 +111,11 @@ jobs:
           name: "agent-linux"
           path: dist/
 
-      - name: Download Artifact (MacOS)
-        uses: actions/download-artifact@v4
-        with:
-          name: "agent-macos"
-          path: dist/
+      # - name: Download Artifact (MacOS)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: "agent-macos"
+      #     path: dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -129,6 +129,5 @@ jobs:
           files: |
             dist/agent-windows.exe
             dist/agent-linux
-            dist/agent-macos
 
 
