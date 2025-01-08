@@ -4,11 +4,12 @@ import 'package:uuid/uuid.dart';
 import 'global.dart';
 import 'logger.dart';
 import 'user_config.dart';
+import 'package:http/http.dart' as http;
 
 class AgentMain {
   /// 软件版本
   static String version() {
-    return 'pre-0.1.2+1';
+    return '0.1.2+2';
   }
 
   /// 初始化用户配置文件
@@ -60,6 +61,9 @@ class AgentMain {
     }
     if (MainApp.nbcli == '你似乎还没有安装nb-cli？') {
       Logger.warn('It seems that you have not installed nb-cli?');
+    }
+    if (UserConfig.checkUpdate()) {
+      await check();
     }
   }
 
@@ -230,5 +234,35 @@ Future<String> getnbcliver() async {
   } catch (error) {
     MainApp.nbcli = '你似乎还没有安装nb-cli？';
     return MainApp.nbcli;
+  }
+}
+
+Future<void> check() async {
+  try {
+    final response = await http.get(Uri.parse(
+        'https://api.github.com/repos/NonebotGUI/nonebot-agent/releases/latest'));
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      final tagName = jsonData['tag_name'];
+      final url = jsonData['html_url'];
+      if (tagName != AgentMain.version()) {
+        Logger.rainbow('New version',
+            '################################################################');
+        Logger.rainbow('New version',
+            '##                                                            ##');
+        Logger.rainbow('New version',
+            '##       A new version of Nonebot Agent is available!         ##');
+        Logger.rainbow('New version',
+            '##                                                            ##');
+        Logger.rainbow('New version',
+            '################################################################');
+        Logger.info('New version found: $tagName');
+        Logger.info('To download the latest version, please visit: $url');
+      }
+    } else {
+      Logger.error('Failed to check for updates');
+    }
+  } catch (e) {
+    Logger.error('Failed to check for updates: $e');
   }
 }

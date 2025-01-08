@@ -285,6 +285,82 @@ void main() {
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
+    // 安装插件
+    router.post('/nbgui/v1/plugin/install', (Request request) async {
+      final body = await request.readAsString();
+      var plugin = jsonDecode(body);
+      String name = plugin['name'];
+      String id = plugin['id'];
+      Plugin.install(name, id);
+      Logger.success('Plugin $name in $id start installing.');
+      return Response.ok('{"status": "Plugin $name in $id start installing."}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 卸载插件
+    router.post('/nbgui/v1/plugin/uninstall', (Request request) async {
+      final body = await request.readAsString();
+      var plugin = jsonDecode(body);
+      String name = plugin['name'];
+      String id = plugin['id'];
+      Plugin.uninstall(name, id);
+      Logger.success('Plugin $name in $id start uninstalling.');
+      return Response.ok(
+          '{"status": "Plugin $name in $id start uninstalling."}',
+          headers: {'Content-Type': 'application/json'},
+          encoding: utf8);
+    });
+
+    // 获取插件列表
+    router.get('/nbgui/v1/plugin/list/<id>',
+        (Request request, String id) async {
+      return Response.ok(Plugin.list(id),
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 获取已禁用的插件列表
+    router.get('/nbgui/v1/plugin/disabled/<id>',
+        (Request request, String id) async {
+      return Response.ok(Plugin.disabledList(id),
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 禁用插件
+    router.post('/nbgui/v1/plugin/disable', (Request request) async {
+      final body = await request.readAsString();
+      var plugin = jsonDecode(body);
+      String name = plugin['name'];
+      String id = plugin['id'];
+      Plugin.disable(name, id);
+      Logger.success('Plugin $name in $id disabled.');
+      return Response.ok('{"status": "Plugin $name in $id disabled."}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 启用插件
+    router.post('/nbgui/v1/plugin/enable', (Request request) async {
+      final body = await request.readAsString();
+      var plugin = jsonDecode(body);
+      String name = plugin['name'];
+      String id = plugin['id'];
+      Plugin.enable(name, id);
+      Logger.success('Plugin $name in $id enabled.');
+      return Response.ok('{"status": "Plugin $name in $id enabled."}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
+    // 安装适配器
+    router.post('/nbgui/v1/adapter/install', (Request request) async {
+      final body = await request.readAsString();
+      var adapter = jsonDecode(body);
+      String name = adapter['name'];
+      String id = adapter['id'];
+      Adapter.install(name, id);
+      Logger.success('Adapter $name in $id start installing.');
+      return Response.ok('{"status": "Adapter $name in $id start installing."}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
     // WebSocket 路由
     router.get('/nbgui/v1/ws', (Request request) {
       return wsHandler(request);

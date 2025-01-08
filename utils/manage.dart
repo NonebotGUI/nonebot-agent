@@ -392,4 +392,152 @@ class Plugin {
     disabledList.remove(name);
     disable.writeAsStringSync(disabledList.join('\n'));
   }
+
+  ///获取插件列表
+  static List list(id) {
+    File pyprojectFile = File('${Bot.path(id)}/pyproject.toml');
+    pyprojectFile.writeAsStringSync(pyprojectFile
+        .readAsStringSync()
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n'));
+    String pyprojectContent =
+        pyprojectFile.readAsStringSync(encoding: systemEncoding);
+    List<String> linesWithoutComments = pyprojectContent
+        .split('\n')
+        .map((line) {
+          int commentIndex = line.indexOf('#');
+          if (commentIndex != -1) {
+            return line.substring(0, commentIndex).trim();
+          }
+          return line;
+        })
+        .where((line) => line.isNotEmpty)
+        .toList();
+    String pyprojectWithoutComments = linesWithoutComments.join('\n');
+    // 解析 TOML 文件
+    var toml = TomlDocument.parse(pyprojectWithoutComments).toMap();
+    var nonebot = toml['tool']['nonebot'];
+    List pluginsList = nonebot['plugins'];
+
+    return pluginsList;
+  }
+
+  /// 获取禁用插件列表
+  static List disabledList(id) {
+    File disable = File('${Bot.path(id)}/.disabled_plugins');
+    if (disable.existsSync()) {
+      return disable.readAsStringSync().split('\n');
+    } else {
+      return [];
+    }
+  }
+
+  /// 安装
+  static install(name, id) async {
+    List<String> commands = [Cli.plugin('install', name)];
+    for (String command in commands) {
+      List<String> args = command.split(' ');
+      String executable = args.removeAt(0);
+      Process process = await Process.start(
+        executable,
+        args,
+        runInShell: true,
+        workingDirectory: Bot.path(id),
+      );
+      process.stdout.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'pluginInstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      process.stderr.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'pluginInstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      await process.exitCode;
+      Map msg = {
+        'type': 'installPluginStatus',
+        'data': 'done',
+      };
+      sendMessageToClients(jsonEncode(msg));
+    }
+  }
+
+  /// 卸载
+  static uninstall(name, id) async {
+    List<String> commands = [Cli.plugin('uninstall', name)];
+    for (String command in commands) {
+      List<String> args = command.split(' ');
+      String executable = args.removeAt(0);
+      Process process = await Process.start(
+        executable,
+        args,
+        runInShell: true,
+        workingDirectory: Bot.path(id),
+      );
+      process.stdout.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'pluginUninstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      process.stderr.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'pluginUninstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      await process.exitCode;
+    }
+  }
+}
+
+// 适配器
+class Adapter {
+  /// 安装
+  static install(name, id) async {
+    List<String> commands = [Cli.adapter('install', name)];
+    for (String command in commands) {
+      List<String> args = command.split(' ');
+      String executable = args.removeAt(0);
+      Process process = await Process.start(
+        executable,
+        args,
+        runInShell: true,
+        workingDirectory: Bot.path(id),
+      );
+      process.stdout.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'adapterInstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      process.stderr.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'adapterInstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      await process.exitCode;
+      Map msg = {
+        'type': 'installAdapterStatus',
+        'data': 'done',
+      };
+      sendMessageToClients(jsonEncode(msg));
+    }
+  }
 }

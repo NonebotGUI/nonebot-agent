@@ -237,6 +237,111 @@ var wsHandler = webSocketHandler((webSocket) async {
                 String res = jsonEncode(response);
                 webSocket.sink.add(res);
                 break;
+
+              // 安装插件
+              case var installPlugin
+                  when installPlugin.startsWith('plugin/install'):
+                var plugin = installPlugin.split('?data=')[1];
+                var pluginJson = jsonDecode(plugin);
+                String name = pluginJson['name'];
+                String id = pluginJson['id'];
+                Plugin.install(name, id);
+                Logger.success('Plugin $name installed!');
+                Map response = {
+                  "type": "installPlugin",
+                  "data": {"status": "Plugin $name start installing..."}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 卸载插件
+              case var uninstallPlugin
+                  when uninstallPlugin.startsWith('plugin/uninstall'):
+                var plugin = uninstallPlugin.split('?data=')[1];
+                var pluginJson = jsonDecode(plugin);
+                String id = pluginJson['id'];
+                String name = pluginJson['name'];
+                Plugin.uninstall(name, id);
+                Logger.success('Plugin $name uninstalled!');
+                Map response = {
+                  "type": "uninstallPlugin",
+                  "data": {"status": "Plugin $name start uninstalling..."}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 禁用插件
+              case var disablePlugin
+                  when disablePlugin.startsWith('plugin/disable'):
+                var plugin = disablePlugin.split('?data=')[1];
+                var pluginJson = jsonDecode(plugin);
+                String id = pluginJson['id'];
+                String name = pluginJson['name'];
+                Plugin.disable(name, id);
+                Logger.success('Plugin $name disabled!');
+                Map response = {
+                  "type": "disablePlugin",
+                  "data": {"status": "Plugin $name disabled!"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 启用插件
+              case var enablePlugin
+                  when enablePlugin.startsWith('plugin/enable'):
+                var plugin = enablePlugin.split('?data=')[1];
+                var pluginJson = jsonDecode(plugin);
+                String id = pluginJson['id'];
+                String name = pluginJson['name'];
+                Plugin.enable(name, id);
+                Logger.success('Plugin $name enabled!');
+                Map response = {
+                  "type": "enablePlugin",
+                  "data": {"status": "Plugin $name enabled!"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 获取插件列表
+              case var pluginList when pluginList.startsWith('plugin/list/'):
+                var id = pluginList.split('/')[2];
+                var plugins = Plugin.list(id);
+                Map response = {"type": "pluginList", "data": plugins};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 获取被禁用的插件列表
+              case var pluginList
+                  when pluginList.startsWith('plugin/disabled/'):
+                var id = pluginList.split('/')[2];
+                var plugins = Plugin.disabledList(id);
+                Map response = {"type": "disabledPluginList", "data": plugins};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 安装适配器
+              case var installAdapter
+                  when installAdapter.startsWith('adapter/install'):
+                var adapter = installAdapter.split('?data=')[1];
+                var adapterJson = jsonDecode(adapter);
+                String name = adapterJson['name'];
+                String id = adapterJson['id'];
+                Adapter.install(name, id);
+                Logger.success('Adapter $name installed!');
+                Map response = {
+                  "type": "installAdapter",
+                  "data": {"status": "Adapter $name start installing..."}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
               // 未知命令
               default:
                 Map response = {
