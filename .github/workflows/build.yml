@@ -68,15 +68,14 @@ jobs:
           with:
             base_image: raspios_lite_arm64:2022-01-28
             commands: |
-              sudo apt-get update && sudo apt-get install apt-transport-https -y
-              sudo apt-get install -y wget
-              sudo wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
-              echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=arm64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
-              sudo apt-get update && sudo apt-get install dart -y
-              dart --version
+              sudo apt update
+              apt install aria2 unzip -y
+              aria2c https://storage.googleapis.com/dart-archive/channels/beta/release/3.7.0-209.1.beta/sdk/dartsdk-linux-arm64-release.zip
+              unzip dartsdk-linux-arm64-release.zip
+              chmod +x dart-sdk/bin/dart
               mkdir dist
-              dart pub get
-              dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux-arm64
+              dart-sdk/bin/dart pub get
+              dart-sdk/bin/dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux-arm64
         
         - name: Upload Dist Artifact
           uses: actions/upload-artifact@v4
