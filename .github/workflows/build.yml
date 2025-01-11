@@ -63,15 +63,21 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v4
 
+        - name: Install Dependencies
+          run: |
+            sudo apt update
+            sudo apt install aria2 unzip -y
+            aria2c https://storage.googleapis.com/dart-archive/channels/beta/release/3.7.0-209.1.beta/sdk/dartsdk-linux-arm64-release.zip
+            unzip dartsdk-linux-arm64-release.zip
+            rm dartsdk-linux-arm64-release.zip
+
+
         - name: Use ARM64 Environment
           uses: pguyot/arm-runner-action@v2
           with:
             base_image: raspios_lite_arm64:2022-01-28
             commands: |
               sudo apt update
-              apt install aria2 unzip -y
-              aria2c https://storage.googleapis.com/dart-archive/channels/beta/release/3.7.0-209.1.beta/sdk/dartsdk-linux-arm64-release.zip
-              unzip dartsdk-linux-arm64-release.zip
               chmod +x dart-sdk/bin/dart
               mkdir dist
               dart-sdk/bin/dart pub get
