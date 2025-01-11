@@ -61,15 +61,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-        - name: Maximize build space
-          uses: easimon/maximize-build-space@master
-          with:
-            root-reserve-mb: 2048
-            swap-size-mb: 1024
-
-
         - name: Checkout
           uses: actions/checkout@v3
+
+        - name: Setup ARM64 Environment
+          run: |
+            sudo apt update
+            sudo apt install qemu-user-static binfmt-support -y
+            sudo update-binfmts --enable qemu-aarch64
+            update-binfmts --display | grep qemu-aarch64
 
 
         - name: Install Dependencies
@@ -81,17 +81,16 @@ jobs:
             rm dartsdk-linux-arm64-release.zip
 
 
-        - name: Use ARM64 Environment
-          uses: pguyot/arm-runner-action@v2
-          with:
-            base_image: raspios_lite_arm64:2022-01-28
-            commands: |
-              sudo apt update
-              chmod +x dart-sdk/bin/dart
-              mkdir dist
-              dart-sdk/bin/dart pub get
-              dart-sdk/bin/dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux-arm64
-        
+        - name: Use ARM64 Environment to Compile
+          run: |
+            export PATH="$PATH:$(pwd)/dart-sdk/bin"
+            mkdir dist
+            dart --version
+            dart pub get
+            dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux-arm64
+
+
+
         - name: Upload Dist Artifact
           uses: actions/upload-artifact@v4
           with:
