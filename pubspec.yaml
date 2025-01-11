@@ -1,6 +1,6 @@
 name: nonebot_flutter_webui_agent
 description: 通过 API 管理你的 NoneBot
-version: 0.1.2+1
+version: 0.1.2+2
 # repository: https://github.com/my_org/my_repo
 
 environment:
@@ -9,6 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   ansicolor: ^2.0.3
+  http: ^1.2.2
   shelf: ^1.4.1
   shelf_router: ^1.1.4
   shelf_web_socket: ^2.0.0

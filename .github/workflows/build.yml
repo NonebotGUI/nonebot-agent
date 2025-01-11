@@ -34,7 +34,7 @@ jobs:
           name: agent-windows
           path: dist/agent-windows.exe
 
-  linux:
+  linux_amd64:
     runs-on: ubuntu-latest
     steps:
         - name: Checkout
@@ -48,13 +48,41 @@ jobs:
           run: |
             mkdir dist
             dart pub get
-            dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux
+            dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux-amd64
   
         - name: Upload Dist Artifact
           uses: actions/upload-artifact@v4
           with:
-            name: agent-linux
-            path: dist/agent-linux
+            name: agent-linux-amd64
+            path: dist/agent-linux-amd64
+
+
+  linux_arm64:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Use ARM64 Environment
+          uses: pguyot/arm-runner-action@v2
+          with:
+            commands: |
+              sudo apt-get update && sudo apt-get install apt-transport-https -y
+              sudo apt-get install -y wget
+              sudo wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg
+              echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=arm64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
+              sudo apt-get update && sudo apt-get install dart -y
+              dart --version
+              mkdir dist
+              dart pub get
+              dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-linux-arm64
+        
+        - name: Upload Dist Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: agent-linux-arm64
+            path: dist/agent-linux-arm64
+
 
   # macos:
   #   runs-on: macos-latest
@@ -85,7 +113,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - windows
-      - linux
+      - linux_amd64
+      - linux_arm64
       # - macos
 
 
@@ -105,10 +134,10 @@ jobs:
           path: dist/
 
 
-      - name: Download Artifact (Linux)
+      - name: Download Artifact (Linux amd64)
         uses: actions/download-artifact@v4
         with:
-          name: "agent-linux"
+          name: "agent-linux-amd64"
           path: dist/
 
       # - name: Download Artifact (MacOS)
@@ -116,6 +145,12 @@ jobs:
       #   with:
       #     name: "agent-macos"
       #     path: dist/
+
+      - name: Download Artifact (Linux arm64)
+        uses: actions/download-artifact@v4
+        with:
+          name: "agent-linux-arm64"
+          path: dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -128,6 +163,7 @@ jobs:
           token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
           files: |
             dist/agent-windows.exe
-            dist/agent-linux
+            dist/agent-linux-amd64
+            dist/agent-linux-arm64
 
 
