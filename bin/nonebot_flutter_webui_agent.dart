@@ -361,6 +361,18 @@ void main() {
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
+    // 安装驱动器
+    router.post('/nbgui/v1/driver/install', (Request request) async {
+      final body = await request.readAsString();
+      var driver = jsonDecode(body);
+      String name = driver['name'];
+      String id = driver['id'];
+      Driver.install(name, id);
+      Logger.success('Driver $name in $id start installing.');
+      return Response.ok('{"status": "Driver $name in $id start installing."}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
     // WebSocket 路由
     router.get('/nbgui/v1/ws', (Request request) {
       return wsHandler(request);

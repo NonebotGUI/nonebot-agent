@@ -541,3 +541,43 @@ class Adapter {
     }
   }
 }
+
+/// 驱动器
+class Driver {
+  /// 安装
+  static install(name, id) async {
+    List<String> commands = [Cli.driver('install', name)];
+    for (String command in commands) {
+      List<String> args = command.split(' ');
+      String executable = args.removeAt(0);
+      Process process = await Process.start(
+        executable,
+        args,
+        runInShell: true,
+        workingDirectory: Bot.path(id),
+      );
+      process.stdout.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'driverInstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      process.stderr.transform(utf8.decoder).listen((data) {
+        Map res = {
+          'type': 'driverInstallLog',
+          'data': data,
+        };
+        sendMessageToClients(jsonEncode(res));
+      });
+
+      await process.exitCode;
+      Map msg = {
+        'type': 'installDriverStatus',
+        'data': 'done',
+      };
+      sendMessageToClients(jsonEncode(msg));
+    }
+  }
+}
