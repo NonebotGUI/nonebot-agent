@@ -114,7 +114,7 @@ jobs:
         - name: Use ARM Environment to Compile
           uses: uraimo/run-on-arch-action@v2
           with:
-            arch: aarch64
+            arch: armv7
             distro: ubuntu20.04
             run: |
               export PATH=$PATH:$GITHUB_WORKSPACE/dart-sdk/bin
