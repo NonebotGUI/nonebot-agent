@@ -361,7 +361,12 @@ class Plugin {
     // 移除指定的插件
     pluginsList.remove(name);
     nonebot['plugins'] = pluginsList;
-    String updatedTomlContent = TomlDocument.fromMap(toml).toString();
+
+    // 手动更新 plugins 列表
+    String updatedTomlContent = pyprojectContent.replaceFirstMapped(
+        RegExp(r'plugins = \[([^\]]*)\]', dotAll: true),
+        (match) =>
+            'plugins = [${pluginsList.map((plugin) => '"$plugin"').join(', ')}]');
 
     pyprojectFile.writeAsStringSync(updatedTomlContent);
     if (disable.readAsStringSync().isEmpty) {
@@ -378,14 +383,20 @@ class Plugin {
     String pyprojectContent = pyprojectFile.readAsStringSync();
     var toml = TomlDocument.parse(pyprojectContent).toMap();
     var nonebot = toml['tool']['nonebot'];
-    List pluginsList = nonebot['plugins'];
+    List pluginsList = List<String>.from(nonebot['plugins']);
 
     if (!pluginsList.contains(name)) {
       pluginsList.add(name);
     }
 
     nonebot['plugins'] = pluginsList;
-    String updatedTomlContent = TomlDocument.fromMap(toml).toString();
+
+    // 手动更新 plugins 列表
+    String updatedTomlContent = pyprojectContent.replaceFirstMapped(
+        RegExp(r'plugins = \[([^\]]*)\]', dotAll: true),
+        (match) =>
+            'plugins = [${pluginsList.map((plugin) => '"$plugin"').join(', ')}]');
+
     pyprojectFile.writeAsStringSync(updatedTomlContent);
     String disabled = disable.readAsStringSync();
     List<String> disabledList = disabled.split('\n');
