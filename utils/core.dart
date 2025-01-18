@@ -30,7 +30,6 @@ class AgentMain {
   "host": "0.0.0.0",
   "port": 2519,
   "token": "",
-  "freeText": "Mem",
   "logMaxLines": 75,
   "python":"default",
   "nbcli":"default",
@@ -133,7 +132,8 @@ class AgentMain {
 class System {
   /// 获取系统状态
   static status() async {
-    if (Platform.isLinux || Platform.isMacOS) {
+    // Linux
+    if (Platform.isLinux) {
       // 获取 CPU 使用率
       var getCpuStatus = await Process.run(
         'bash',
@@ -147,16 +147,14 @@ class System {
       // 获取内存使用率
       var getMemStatus = await Process.run(
         'bash',
-        [
-          '-c',
-          "free | grep ${AgentMain.freeText()} | awk '{print \$3/\$2 * 100.0}'"
-        ],
+        ['-c', "LC_ALL='c' free | grep Mem | awk '{print \$3/\$2 * 100.0}'"],
       );
       String memUsage = getMemStatus.stdout.toString().trim().substring(0, 4);
 
       return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
     }
 
+    // Windows
     if (Platform.isWindows) {
       // 获取 CPU 使用率
       String cpuCommand =
@@ -179,6 +177,45 @@ class System {
     }
 
     return '{"error": "Unsupported platform"}';
+  }
+
+  // MacOS
+  static macStatus() async {
+    // 获取内存使用率
+    const script = '''
+      pages_info=\$(vm_stat | grep "Pages" | awk '{print \$NF}' | sed 's/[^0-9]//g')
+      active_pages=\$(echo "\$pages_info" | sed -n '2p')
+      inactive_pages=\$(echo "\$pages_info" | sed -n '3p')
+      wired_pages=\$(echo "\$pages_info" | sed -n '6p')
+      active_pages=\${active_pages:-0}
+      inactive_pages=\${inactive_pages:-0}
+      wired_pages=\${wired_pages:-0}
+      used_pages=\$((active_pages + inactive_pages + wired_pages))
+      total_mem=\$(sysctl hw.memsize | awk '{print \$2}')
+      page_size=4096
+      total_pages=\$((total_mem / page_size))
+      if [ \$total_pages -gt 0 ]; then
+        echo "scale=2; \$used_pages * 100 / \$total_pages" | bc
+      else
+        echo "0"
+      fi
+    ''';
+
+    // 获取 CPU 使用率
+    var getCpuStatus = await Process.run(
+      'bash',
+      ['-c', 'top -l 1 | grep "CPU usage" | awk \'{print \$3}\''],
+    );
+    String cpuUsage = getCpuStatus.stdout.toString().trim();
+
+    // 获取内存使用率
+    var getMemStatus = await Process.run(
+      'bash',
+      ['-c', script],
+    );
+    String memUsage = getMemStatus.stdout.toString().trim();
+
+    return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
   }
 
   /// 获取系统平台
