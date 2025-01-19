@@ -274,7 +274,7 @@ var wsHandler = webSocketHandler((webSocket) async {
 
               // 禁用插件
               case var disablePlugin
-                  when disablePlugin.startsWith('plugin/disable'):
+                  when disablePlugin.startsWith('plugin/disable?data='):
                 var plugin = disablePlugin.split('?data=')[1];
                 var pluginJson = jsonDecode(plugin);
                 String id = pluginJson['id'];
@@ -291,7 +291,7 @@ var wsHandler = webSocketHandler((webSocket) async {
 
               // 启用插件
               case var enablePlugin
-                  when enablePlugin.startsWith('plugin/enable'):
+                  when enablePlugin.startsWith('plugin/enable?data='):
                 var plugin = enablePlugin.split('?data=')[1];
                 var pluginJson = jsonDecode(plugin);
                 String id = pluginJson['id'];
@@ -317,7 +317,7 @@ var wsHandler = webSocketHandler((webSocket) async {
 
               // 获取被禁用的插件列表
               case var pluginList
-                  when pluginList.startsWith('plugin/disabled/'):
+                  when pluginList.startsWith('plugin/disabledList/'):
                 var id = pluginList.split('/')[2];
                 var plugins = Plugin.disabledList(id);
                 Map response = {"type": "disabledPluginList", "data": plugins};
