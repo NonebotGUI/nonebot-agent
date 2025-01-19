@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 class AgentMain {
   /// 软件版本
   static String version() {
-    return '0.1.3+1';
+    return '0.1.4';
   }
 
   /// 初始化用户配置文件
@@ -97,17 +97,6 @@ class AgentMain {
     } else {
       Logger.error("Token is empty, please set it in agent.json.");
       exit(1);
-    }
-  }
-
-  /// Linux 中执行 free 命令时显示的文字[Mem/内存]
-  static String freeText() {
-    Map<String, dynamic> jsonMap = _config();
-    if (jsonMap.containsKey("freeText")) {
-      String text = jsonMap['freeText'].toString();
-      return text;
-    } else {
-      return 'Mem';
     }
   }
 
