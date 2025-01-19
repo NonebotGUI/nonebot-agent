@@ -165,13 +165,9 @@ class System {
       return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
     }
 
-    return '{"error": "Unsupported platform"}';
-  }
-
-  // MacOS
-  static macStatus() async {
-    // 获取内存使用率
-    const script = '''
+    if (Platform.isMacOS) {
+      // 获取内存使用率
+      const script = '''
       pages_info=\$(vm_stat | grep "Pages" | awk '{print \$NF}' | sed 's/[^0-9]//g')
       active_pages=\$(echo "\$pages_info" | sed -n '2p')
       inactive_pages=\$(echo "\$pages_info" | sed -n '3p')
@@ -190,21 +186,24 @@ class System {
       fi
     ''';
 
-    // 获取 CPU 使用率
-    var getCpuStatus = await Process.run(
-      'bash',
-      ['-c', 'top -l 1 | grep "CPU usage" | awk \'{print \$3}\''],
-    );
-    String cpuUsage = getCpuStatus.stdout.toString().trim();
+      // 获取 CPU 使用率
+      var getCpuStatus = await Process.run(
+        'bash',
+        ['-c', 'top -l 1 | grep "CPU usage" | awk \'{print \$3}\''],
+      );
+      String cpuUsage = getCpuStatus.stdout.toString().trim();
 
-    // 获取内存使用率
-    var getMemStatus = await Process.run(
-      'bash',
-      ['-c', script],
-    );
-    String memUsage = getMemStatus.stdout.toString().trim();
+      // 获取内存使用率
+      var getMemStatus = await Process.run(
+        'bash',
+        ['-c', script],
+      );
+      String memUsage = getMemStatus.stdout.toString().trim();
 
-    return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
+      return '{"cpu_usage": "$cpuUsage%", "ram_usage": "$memUsage%"}';
+    }
+
+    return '{"error": "Unsupported platform"}';
   }
 
   /// 获取系统平台
