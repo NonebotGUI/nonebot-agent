@@ -129,28 +129,52 @@ jobs:
           with:
             name: agent-linux-arm
             path: dist/agent-linux-arm
-  # macos:
-  #   runs-on: macos-latest
 
-  #   steps:
-  #       - name: Checkout
-  #         uses: actions/checkout@v4
-  #         with:
-  #           submodules: true
-  #       - name: Setup Dart
-  #         uses: dart-lang/setup-dart@v1
-  
-  #       - name: Compile
-  #         run: |
-  #           mkdir dist
-  #           dart pub get
-  #           dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-macos
-  
-  #       - name: Upload Dist Artifact
-  #         uses: actions/upload-artifact@v4
-  #         with:
-  #           name: agent-macos
-  #           path: dist/agent-macos
+  macos:
+    runs-on: macos-13
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            submodules: true
+        - name: Setup Dart
+          uses: dart-lang/setup-dart@v1
+
+        - name: Compile
+          run: |
+            mkdir dist
+            dart pub get
+            dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-macos
+
+        - name: Upload Dist Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: agent-macos
+            path: dist/agent-macos
+
+  macos_M1:
+    runs-on: macos-latest
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            submodules: true
+        - name: Setup Dart
+          uses: dart-lang/setup-dart@v1
+
+        - name: Compile
+          run: |
+            mkdir dist
+            dart pub get
+            dart compile exe bin/nonebot_flutter_webui_agent.dart -o dist/agent-macos-M1
+
+        - name: Upload Dist Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: agent-macos-M1
+            path: dist/agent-macos-M1
 
 
   publish_releases:
@@ -161,6 +185,8 @@ jobs:
       - linux_amd64
       - linux_arm64
       - linux_arm
+      - macos
+      - macos_M1
 
 
     steps:
@@ -185,11 +211,17 @@ jobs:
           name: "agent-linux-amd64"
           path: dist/
 
-      # - name: Download Artifact (MacOS)
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: "agent-macos"
-      #     path: dist/
+      - name: Download Artifact (MacOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: "agent-macos"
+          path: dist/
+
+      - name: Download Artifact (MacOS M1)
+        uses: actions/download-artifact@v4
+        with:
+          name: "agent-macos-M1"
+          path: dist/
 
       - name: Download Artifact (Linux arm64)
         uses: actions/download-artifact@v4
@@ -217,5 +249,7 @@ jobs:
             dist/agent-linux-amd64
             dist/agent-linux-arm64
             dist/agent-linux-arm
+            dist/agent-macos
+            dist/agent-macos-M1
 
 
