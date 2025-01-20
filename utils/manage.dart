@@ -340,6 +340,9 @@ class Plugin {
   ///禁用插件
   static disable(name, id) {
     File disable = File('${Bot.path(id)}/.disabled_plugins');
+    if (!disable.existsSync()) {
+      disable.createSync();
+    }
     File pyprojectFile = File('${Bot.path(id)}/pyproject.toml');
     String pyprojectContent = pyprojectFile.readAsStringSync();
     List<String> linesWithoutComments = pyprojectContent
@@ -439,6 +442,7 @@ class Plugin {
     if (disable.existsSync()) {
       return disable.readAsStringSync().split('\n');
     } else {
+      disable.createSync();
       return [];
     }
   }
