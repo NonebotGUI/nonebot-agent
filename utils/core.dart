@@ -270,7 +270,7 @@ Future<void> check() async {
       final jsonData = jsonDecode(response.body);
       final tagName = jsonData['tag_name'];
       final url = jsonData['html_url'];
-      if (tagName != AgentMain.version()) {
+      if (tagName.toString().replaceAll('v', '') != AgentMain.version()) {
         Logger.rainbow('New version',
             '################################################################');
         Logger.rainbow('New version',
