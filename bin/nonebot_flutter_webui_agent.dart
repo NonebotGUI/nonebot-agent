@@ -196,10 +196,10 @@ void main() {
       var bot = jsonDecode(body);
       String name = bot['name'];
       String path = bot['path'];
-      String protocolPath = bot['protocolPath'];
-      bool withProtocol = bot['withProtocol'];
-      String cmd = bot['cmd'];
-      Bot.import(name, path, withProtocol, protocolPath, cmd);
+      // String protocolPath = bot['protocolPath'];
+      // bool withProtocol = bot['withProtocol'];
+      // String cmd = bot['cmd'];
+      Bot.import(name, path, false, '', '');
       Logger.success('Bot $name imported!');
       return Response.ok('{"status": "Bot $name imported!"}',
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
@@ -227,7 +227,6 @@ void main() {
     // 删除 Bot
     router.delete('/nbgui/v1/bot/remove/<id>',
         (Request request, String id) async {
-      gOnOpen = id;
       if (Bot.status(id)) {
         Bot.stop(id);
       }
@@ -240,7 +239,6 @@ void main() {
     // 永久删除 Bot
     router.delete('/nbgui/v1/bot/delete/<id>',
         (Request request, String id) async {
-      gOnOpen = id;
       if (Bot.status(id)) {
         Bot.stop(id);
       }
@@ -312,10 +310,14 @@ void main() {
     });
 
     // 获取插件列表
-    router.get('/nbgui/v1/plugin/list/<id>',
-        (Request request, String id) async {
-      return Response.ok(Plugin.list(id),
-          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    router.get('/nbgui/v1/plugin/list/<id>', (Request request, id) async {
+      if (File('bots/$id.json').existsSync()) {
+        return Response.ok(jsonEncode(Plugin.list(id)),
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      } else {
+        return Response.ok('{"code": 1003, "error": "Bot $id not found!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      }
     });
 
     // 获取已禁用的插件列表
