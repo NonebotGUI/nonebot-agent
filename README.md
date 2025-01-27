@@ -35,6 +35,10 @@ _✨ 使用 API 来管理你的 NoneBot ✨_
 
 [查看文档](https://webui.nbgui.top)
 
+## 🚀 接口文档
+
+  [HTTP API文档](https://webui.nbgui.top/advanced/http/total.html)
+
 ## 📑 支持的 API
 
 - [X] Bot 列表
