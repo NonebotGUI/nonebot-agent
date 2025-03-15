@@ -375,6 +375,91 @@ void main() {
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
+    // 获取env文件内容
+    router.get('/nbgui/v1/bot/env/<id>/<env>',
+        (Request request, String id, String env) async {
+      if (['.env', '.env.prod', '.env.dev'].contains(env)) {
+        if (File('${Bot.path(id)}/$env').existsSync()) {
+          String content = File('${Bot.path(id)}/$env').readAsStringSync();
+          Map res = {'content': content};
+          return Response.ok(jsonEncode(res),
+              headers: {'Content-Type': 'application/json'}, encoding: utf8);
+        } else {
+          return Response.ok('{"code": 1004, "error": "Env $env not found!"}',
+              headers: {'Content-Type': 'application/json'}, encoding: utf8);
+        }
+      } else {
+        return Response.ok('{"code": 1005, "error": "Not allowed operation!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      }
+    });
+
+    // 编辑env文件内容
+    router.post('/nbgui/v1/bot/env/<id>/<env>',
+        (Request request, String id, String env) async {
+      if (['.env', '.env.prod', '.env.dev'].contains(env)) {
+        final body = await request.readAsString();
+        var data = jsonDecode(body);
+        String content = data['content'];
+        if (!File('${Bot.path(id)}/$env').existsSync()) {
+          File('${Bot.path(id)}/$env').create(recursive: true);
+        }
+        File('${Bot.path(id)}/$env').writeAsStringSync(content);
+        return Response.ok('{"status": "Env $env updated!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      } else {
+        return Response.ok('{"code": 1005, "error": "Not allowed operation!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      }
+    });
+
+    ///新增Env配置项
+    router.post('/nbgui/v1/bot/env/add/<id>',
+        (Request request, String id) async {
+      final body = await request.readAsString();
+      var data = jsonDecode(body);
+      String key = data['varName'];
+      String value = data['varValue'];
+      String env = data['env'];
+      if (['.env', '.env.prod', '.env.dev'].contains(env)) {
+        if (File('${Bot.path(id)}/$env').existsSync()) {
+          Env.add(id, env, key, value);
+          return Response.ok('{"status": "Env $env updated!"}',
+              headers: {'Content-Type': 'application/json'}, encoding: utf8);
+        } else {
+          File('${Bot.path(id)}/$env').create(recursive: true);
+          File('${Bot.path(id)}/$env').writeAsStringSync('$key=$value');
+          return Response.ok('{"status": "Env $env updated!"}',
+              headers: {'Content-Type': 'application/json'}, encoding: utf8);
+        }
+      } else {
+        return Response.ok('{"code": 1005, "error": "Not allowed operation!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      }
+    });
+
+    ///删除Env配置项
+    router.post('/nbgui/v1/bot/env/delete/<id>',
+        (Request request, String id) async {
+      final body = await request.readAsString();
+      var data = jsonDecode(body);
+      String key = data['varName'];
+      String env = data['env'];
+      if (['.env', '.env.prod', '.env.dev'].contains(env)) {
+        if (File('${Bot.path(id)}/$env').existsSync()) {
+          Env.delete(id, env, key);
+          return Response.ok('{"status": "Env $env updated!"}',
+              headers: {'Content-Type': 'application/json'}, encoding: utf8);
+        } else {
+          return Response.ok('{"code": 1004, "error": "Env $env not found!"}',
+              headers: {'Content-Type': 'application/json'}, encoding: utf8);
+        }
+      } else {
+        return Response.ok('{"code": 1005, "error": "Not allowed operation!"}',
+            headers: {'Content-Type': 'application/json'}, encoding: utf8);
+      }
+    });
+
     // WebSocket 路由
     router.get('/nbgui/v1/ws', (Request request) {
       return wsHandler(request);

@@ -596,3 +596,38 @@ class Driver {
     }
   }
 }
+
+// .env.*
+class Env {
+  /// 读取.env文件
+  static load(id, filename) {
+    File file = File('${Bot.path(id)}/$filename');
+    return file.readAsStringSync();
+  }
+
+  /// 新增配置项
+  static add(id, filename, varName, varValue) {
+    File file = File('${Bot.path(id)}/$filename');
+    file.writeAsStringSync('\n$varName=$varValue', mode: FileMode.append);
+  }
+
+  /// 删除配置项
+  static delete(id, filename, varName) {
+    File file = File('${Bot.path(id)}/$filename');
+    String content = file.readAsStringSync();
+    List<String> lines = content.split('\n');
+    lines.removeWhere((line) => line.split('=').first.trim() == varName);
+    file.writeAsStringSync(lines.join('\n'));
+  }
+
+  /// 修改文件
+  static modify(id, filename, content) {
+    File file = File('${Bot.path(id)}/$filename');
+    if (file.existsSync()) {
+      file.writeAsStringSync(content);
+    } else {
+      file.createSync();
+      file.writeAsStringSync(content);
+    }
+  }
+}

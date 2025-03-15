@@ -342,6 +342,98 @@ var wsHandler = webSocketHandler((webSocket) async {
                 webSocket.sink.add(res);
                 break;
 
+              // 获取env文件内容
+              case var getEnv when getEnv.startsWith('env/load/'):
+                var id = getEnv.split('/')[2];
+                var filename = getEnv.split('/')[3];
+                if (['.env', '.env.prod', '.env.dev'].contains(filename)) {
+                  var env = Env.load(id, filename);
+                  Map response = {"type": "envContent", "data": env};
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                } else {
+                  Map response = {
+                    "type": "envContent",
+                    "data": {"error": "Not allowed operation!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                }
+                break;
+
+              // 编辑env文件内容
+              case var editEnv when editEnv.startsWith('env/edit'):
+                var data = editEnv.split('?data=')[1];
+                var id = jsonDecode(data)['id'];
+                var filename = jsonDecode(data)['filename'];
+                var content = jsonDecode(data)['content'];
+                if (['.env', '.env.prod', '.env.dev'].contains(filename)) {
+                  Env.modify(id, filename, content);
+                  Map response = {
+                    "type": "editEnv",
+                    "data": {"status": "Env file $filename edited!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                } else {
+                  Map response = {
+                    "type": "editEnv",
+                    "data": {"error": "Not allowed operation!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                }
+                break;
+
+              // 新增env配置项
+              case var addEnv when addEnv.startsWith('env/add'):
+                var data = addEnv.split('?data=')[1];
+                var id = jsonDecode(data)['id'];
+                var filename = jsonDecode(data)['filename'];
+                var key = jsonDecode(data)['varName'];
+                var value = jsonDecode(data)['varValue'];
+                if (['.env', '.env.prod', '.env.dev'].contains(filename)) {
+                  Env.add(id, filename, key, value);
+                  Map response = {
+                    "type": "addEnv",
+                    "data": {"status": "Env file $filename added!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                } else {
+                  Map response = {
+                    "type": "addEnv",
+                    "data": {"error": "Not allowed operation!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                }
+                break;
+
+              // 删除env配置项
+              case var deleteEnv when deleteEnv.startsWith('env/delete'):
+                var data = deleteEnv.split('?data=')[1];
+                var id = jsonDecode(data)['id'];
+                var filename = jsonDecode(data)['filename'];
+                var key = jsonDecode(data)['varName'];
+                if (['.env', '.env.prod', '.env.dev'].contains(filename)) {
+                  Env.delete(id, filename, key);
+                  Map response = {
+                    "type": "deleteEnv",
+                    "data": {"status": "Env file $filename deleted!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                } else {
+                  Map response = {
+                    "type": "deleteEnv",
+                    "data": {"error": "Not allowed operation!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                }
+                break;
+
               // 未知命令
               default:
                 Map response = {
