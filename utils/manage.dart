@@ -601,6 +601,9 @@ class Driver {
 class Env {
   /// 读取.env文件
   static load(id, filename) {
+    if (!File('${Bot.path(id)}/$filename').existsSync()) {
+      File('${Bot.path(id)}/$filename').createSync();
+    }
     File file = File('${Bot.path(id)}/$filename');
     return file.readAsStringSync();
   }
