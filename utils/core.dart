@@ -21,6 +21,18 @@ class AgentMain {
 
   ///初始化应用程序
   static void init() async {
+    Logger.rainbow('logo',
+        '  _   _                  ____        _        _                    _   ');
+    Logger.rainbow('logo',
+        ' | \\ | | ___  _ __   ___| __ )  ___ | |_     / \\   __ _  ___ _ __ | |_ ');
+    Logger.rainbow('logo',
+        ' |  \\| |/ _ \\| \'_ \\ / _ |  _ \\ / _ \\| __|   / _ \\ / _` |/ _ | \'_ \\| __|');
+    Logger.rainbow('logo',
+        ' | |\\  | (_) | | | |  __| |_) | (_) | |_   / ___ | (_| |  __| | | | |_ ');
+    Logger.rainbow('logo',
+        ' |_| \\_|\\___/|_| |_|\\___|____/ \\___/ \\__| /_/   \\_\\__, |\\___|_| |_|\\__|');
+    Logger.rainbow('logo',
+        '                                                |___/                 ');
     File file = File('config.json');
     if (!file.existsSync()) {
       Logger.warn("Config file not found, creating a new one...");
