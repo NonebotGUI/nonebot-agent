@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 class AgentMain {
   /// 软件版本
   static String version() {
-    return '0.1.6';
+    return '0.1.6+1';
   }
 
   /// 初始化用户配置文件

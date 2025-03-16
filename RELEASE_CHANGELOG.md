@@ -1,3 +1,3 @@
-# 🌈 Changelog 2025.03.16#2 🔧
+# 🌈 Changelog 2025.03.16#3 🔧
 by @XTxiaoting14332
-新增https/wss支持
+新增启动Logo
