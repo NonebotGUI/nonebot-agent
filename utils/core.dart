@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 class AgentMain {
   /// 软件版本
   static String version() {
-    return '0.1.5';
+    return '0.1.6';
   }
 
   /// 初始化用户配置文件
@@ -34,7 +34,12 @@ class AgentMain {
   "python":"default",
   "nbcli":"default",
   "color":"light",
-  "checkUpdate": true
+  "checkUpdate": true,
+  "wss": {
+    "enabled": false,
+    "certpath": "",
+    "keypath": ""
+    }
 }
 ''';
       file.writeAsStringSync(content);
@@ -85,6 +90,17 @@ class AgentMain {
       return port;
     } else {
       return 2519;
+    }
+  }
+
+  /// wss是否启用(beta)
+  static Map wss() {
+    Map<String, dynamic> jsonMap = _config();
+    if (jsonMap.containsKey("wss")) {
+      Map wss = jsonMap['wss'];
+      return wss;
+    } else {
+      return {"enabled": false, "certpath": "", "keypath": ""};
     }
   }
 

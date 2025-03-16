@@ -21,6 +21,26 @@ void main() {
     Logger.info('Version: ${AgentMain.version()}');
     // 初始化服务器配置
     AgentMain.init();
+    if (AgentMain.wss()['enabled']) {
+      Logger.info('wss enabled.');
+      Logger.info('Checking certificate files...');
+      if (!File(AgentMain.wss()['certpath']).existsSync()) {
+        Logger.error('Certificate files not found!');
+        Logger.error('Please check your configuration file.');
+        await Future.delayed(const Duration(seconds: 3));
+        exit(1);
+      } else {
+        Logger.success('Load certificate: ${AgentMain.wss()['certpath']}');
+      }
+      if (!File(AgentMain.wss()['keypath']).existsSync()) {
+        Logger.error('Key files not found!');
+        Logger.error('Please check your configuration file.');
+        await Future.delayed(const Duration(seconds: 3));
+        exit(1);
+      } else {
+        Logger.success('Load key: ${AgentMain.wss()['keypath']}');
+      }
+    }
     final String host = AgentMain.host();
     final int port = AgentMain.port();
     Logger.info("HTTP server is starting...");
@@ -477,21 +497,48 @@ void main() {
         .addMiddleware(handleErrors())
         .addHandler(router.call);
 
-    await io.serve((Request request) {
-      if (request.url.path == 'nbgui/v1/ws') {
-        return wsHandler(request);
-      }
-      return httpHandler(request);
-    }, host, port);
-
-    if (host.contains(":")) {
-      Logger.info(
-          'HTTP server listening on http://[$host]:$port (Ctrl+C to quit)');
-      Logger.info(
-          'WebSocket server listening on ws://[$host]:$port/nbgui/v1/ws');
+    // 启动服务器
+    if (AgentMain.wss()['enabled']) {
+      await io.serve((Request request) {
+        if (request.url.path == 'nbgui/v1/ws') {
+          return wsHandler(request);
+        }
+        return httpHandler(request);
+      }, host, port,
+          securityContext: SecurityContext()
+            ..useCertificateChain(AgentMain.wss()['certpath'])
+            ..usePrivateKey(AgentMain.wss()['keypath']));
     } else {
-      Logger.info('Serving at http://$host:$port (Ctrl+C to quit)');
-      Logger.info('WebSocket server listening on ws://$host:$port/nbgui/v1/ws');
+      await io.serve((Request request) {
+        if (request.url.path == 'nbgui/v1/ws') {
+          return wsHandler(request);
+        }
+        return httpHandler(request);
+      }, host, port);
+    }
+
+    if (AgentMain.wss()['enabled']) {
+      if (host.contains(":")) {
+        Logger.info(
+            'HTTPS server listening on https://[$host]:$port (Ctrl+C to quit)');
+        Logger.info(
+            'WebSocket server listening on wss://[$host]:$port/nbgui/v1/ws');
+      } else {
+        Logger.info('Serving at https://$host:$port (Ctrl+C to quit)');
+        Logger.info(
+            'WebSocket server listening on wss://$host:$port/nbgui/v1/ws');
+      }
+    } else {
+      if (host.contains(":")) {
+        Logger.info(
+            'HTTP server listening on http://[$host]:$port (Ctrl+C to quit)');
+        Logger.info(
+            'WebSocket server listening on ws://[$host]:$port/nbgui/v1/ws');
+      } else {
+        Logger.info('Serving at http://$host:$port (Ctrl+C to quit)');
+        Logger.info(
+            'WebSocket server listening on ws://$host:$port/nbgui/v1/ws');
+      }
     }
   }, (error, stackTrace) {
     Logger.error('Unhandled Exception: $error\nStack Trace:\n$stackTrace');
