@@ -1,3 +1,3 @@
-# 🌈 Changelog 2025.03.16#3 🔧
+# 🌈 Changelog 2025.04.05 🔧
 by @XTxiaoting14332
-新增启动Logo
+修复插件目录路径不正确的问题
