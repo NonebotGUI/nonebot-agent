@@ -116,7 +116,7 @@ class DeployBot {
         $adapterList
     ]
     plugins = []
-    plugin_dirs = ${template == 'simple(插件开发者)' ? (pluginDir == '在[bot名称]/[bot名称]下' ? '["$name/plugins"]' : '["/src/plugins"]') : '[]'}
+    plugin_dirs = ${template == 'simple(插件开发者)' ? (pluginDir == '在[bot名称]/[bot名称]下' ? '["$name/plugins"]' : '["src/plugins"]') : '[]'}
     builtin_plugins = ["echo"]
     ''';
 
