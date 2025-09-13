@@ -5,6 +5,7 @@ import 'global.dart';
 import 'logger.dart';
 import 'user_config.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 class AgentMain {
   /// 软件版本
@@ -33,15 +34,17 @@ class AgentMain {
         ' |_| \\_|\\___/|_| |_|\\___|____/ \\___/ \\__| /_/   \\_\\__, |\\___|_| |_|\\__|');
     Logger.rainbow('logo',
         '                                                |___/                 ');
+    var uuid = Uuid();
+    String token = uuid.v4().replaceAll('-', '').substring(0, 8);
     File file = File('config.json');
     if (!file.existsSync()) {
       Logger.warn("Config file not found, creating a new one...");
       file.createSync();
-      const String content = '''
+      final String content = '''
 {
-  "host": "0.0.0.0",
+  "host": "127.0.0.1",
   "port": 2519,
-  "token": "",
+  "token": "$token",
   "logMaxLines": 75,
   "python":"default",
   "nbcli":"default",
