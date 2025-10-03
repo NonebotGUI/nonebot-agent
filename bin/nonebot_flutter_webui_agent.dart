@@ -123,7 +123,7 @@ void main() {
     // 定义 API 路由
     // ping
     router.get('/nbgui/v1/ping', (Request request) {
-      return Response.ok('pong!');
+      return Response.ok('pong!', encoding: utf8);
     });
 
     // 获取 Bot 列表

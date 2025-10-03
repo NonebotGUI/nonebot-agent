@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'core.dart';
 import 'global.dart';
@@ -94,6 +95,42 @@ var wsHandler = webSocketHandler((webSocket) async {
                 var log = await Bot.log(id);
                 //
                 Map response = {"type": "botLog", "data": log};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 获取 stderr 日志
+              case var botStderr when botStderr.startsWith('bot/stderr/'):
+                var id = botStderr.split('/')[2];
+                var log = Bot.stderr(id);
+                if (log.isEmpty) {
+                  Map response = {
+                    "type": "botStderr",
+                    "hasLog": false,
+                    "data": {"error": "No stderr log found!"}
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                } else {
+                  Map response = {
+                    "type": "botStderr",
+                    "hasLog": true,
+                    "data": log
+                  };
+                  String res = jsonEncode(response);
+                  webSocket.sink.add(res);
+                }
+                break;
+
+              // 清空 stderr 日志
+              case var clearStderr
+                  when clearStderr.startsWith('bot/clearStderr/'):
+                var id = clearStderr.split('/')[2];
+                Bot.clearStderr(id);
+                Map response = {
+                  "type": "clearStderr",
+                  "data": {"status": "Stderr log cleared!"}
+                };
                 String res = jsonEncode(response);
                 webSocket.sink.add(res);
                 break;

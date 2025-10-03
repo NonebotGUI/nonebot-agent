@@ -181,6 +181,15 @@ class Bot {
     cfgFile.writeAsStringSync(jsonEncode(botInfo));
     return "echo 写入json";
   }
+
+  static void clearStderr(String id) {
+    File file = File('${Bot.path(id)}/nbgui_stderr.log');
+    if (file.existsSync()) {
+      file.writeAsStringSync('');
+    } else {
+      file.createSync();
+    }
+  }
 }
 
 // 协议端相关操作
