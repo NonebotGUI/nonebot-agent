@@ -130,7 +130,7 @@ class Bot {
   static String stderr(id) {
     File file = File('${Bot.path(id)}/nbgui_stderr.log');
     if (file.existsSync()) {
-      return file.readAsStringSync();
+      return file.readAsStringSync(encoding: systemEncoding);
     } else {
       return '';
     }
