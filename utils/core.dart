@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 class AgentMain {
   /// 软件版本
   static String version() {
-    return '0.1.8';
+    return '0.1.8+1';
   }
 
   /// 初始化用户配置文件

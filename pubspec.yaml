@@ -1,6 +1,6 @@
 name: nonebot_flutter_webui_agent
 description: 通过 API 管理你的 NoneBot
-version: 0.1.8
+version: 0.1.8+1
 # repository: https://github.com/my_org/my_repo
 
 environment:
