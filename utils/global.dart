@@ -2,7 +2,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 //全局变量
 
-late String gOnOpen = "";
+String gOnOpen = "";
 List<WebSocketChannel> wsChannels = [];
 
 class MainApp {
