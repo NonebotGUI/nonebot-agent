@@ -6,18 +6,19 @@ import 'global.dart';
 import 'logger.dart';
 import 'manage.dart';
 import 'run_cmd.dart';
+import 'file.dart';
 
 // WebSocket 服务
 var wsHandler = webSocketHandler((webSocket) async {
   // 监听客户端消息，并处理错误
   wsChannels.add(webSocket);
   Logger.success(
-      'Websocket connection established. ${wsChannels.length} connections now.');
+      'Websocket connection established. ${wsChannels.length} connection(s) now.');
   webSocket.stream.listen(
     (message) async {
       message = message.toString().trim();
       try {
-        var body = message.split('?token=');
+        var body = message.split('&token=');
         String msg = body[0];
         String token = body[1];
         try {
@@ -469,6 +470,152 @@ var wsHandler = webSocketHandler((webSocket) async {
                   String res = jsonEncode(response);
                   webSocket.sink.add(res);
                 }
+                break;
+
+              // 列出文件和目录
+              case var listDir when listDir.startsWith('file/list/'):
+                var uri = Uri.parse(listDir);
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var dirContent = FileUtils.readDir(id, subPath);
+                Map response = {"type": "fileList", "data": dirContent};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 创建目录
+              case var createDir when createDir.startsWith('file/mkdir/'):
+                var uri = Uri.parse(createDir);
+                var dirName = uri.queryParameters['name'] ?? '';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var result = FileUtils.createDir(id, subPath, dirName);
+                Map response = {"type": "createDir", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 删除文件或目录
+              case var deletePath when deletePath.startsWith('file/delete/'):
+                var uri = Uri.parse(deletePath);
+                var name = uri.queryParameters['name'] ?? '';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var result = FileUtils.deletePath(id, subPath, name);
+                Map response = {"type": "deletePath", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 重命名文件或目录
+              case var renamePath when renamePath.startsWith('file/rename/'):
+                var uri = Uri.parse(renamePath);
+                var data = uri.queryParameters['data'] ?? '{}';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var dataJson = jsonDecode(data);
+                var oldName = dataJson['oldName'];
+                var newName = dataJson['newName'];
+                var result =
+                    FileUtils.renamePath(id, subPath, oldName, newName);
+                Map response = {"type": "renamePath", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 读取文件内容
+              case var readFile when readFile.startsWith('file/read/'):
+                var uri = Uri.parse(readFile);
+                var fileName = uri.queryParameters['name'] ?? '';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var content = FileUtils.readFile(id, subPath, fileName);
+                Map response = {"type": "fileContent", "data": content};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 写入文件内容
+              case var writeFile when writeFile.startsWith('file/write/'):
+                var uri = Uri.parse(writeFile);
+                var data = uri.queryParameters['data'] ?? '{}';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var dataJson = jsonDecode(data);
+                var fileName = dataJson['filename'];
+                var content = dataJson['content'];
+                var result =
+                    FileUtils.writeFile(id, subPath, fileName, content);
+                Map response = {"type": "writeFile", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 移动文件或目录
+              case var movePath when movePath.startsWith('file/move/'):
+                var uri = Uri.parse(movePath);
+                var data = uri.queryParameters['data'] ?? '{}';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var dataJson = jsonDecode(data);
+                var name = dataJson['name'];
+                var targetSubPath = dataJson['target'];
+                if (targetSubPath.startsWith('/')) {
+                  targetSubPath = targetSubPath.substring(1);
+                }
+                var result =
+                    FileUtils.movePath(id, subPath, name, targetSubPath);
+                Map response = {"type": "movePath", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 复制文件或目录
+              case var copyPath when copyPath.startsWith('file/copy/'):
+                var uri = Uri.parse(copyPath);
+                var data = uri.queryParameters['data'] ?? '{}';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var dataJson = jsonDecode(data);
+                var name = dataJson['name'];
+                var targetName = dataJson['target'];
+                if (targetName.startsWith('/')) {
+                  targetName = targetName.substring(1);
+                }
+                var result = FileUtils.copyPath(id, subPath, name, targetName);
+                Map response = {"type": "copyPath", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
+              // 创建空文件
+              case var createFile when createFile.startsWith('file/touch/'):
+                var uri = Uri.parse(createFile);
+                var fileName = uri.queryParameters['name'] ?? '';
+                var parts = uri.path.split('/');
+                var id = parts[2];
+                var subPath =
+                    parts.length > 3 ? parts.sublist(3).join('/') : '';
+                var result = FileUtils.createFile(id, subPath, fileName);
+                Map response = {"type": "createFile", "data": result};
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
                 break;
 
               // 未知命令
