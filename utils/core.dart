@@ -22,18 +22,18 @@ class AgentMain {
 
   ///初始化应用程序
   static void init() async {
-    Logger.rainbow('logo',
+    Logger.rainbow('LOGO',
         '  _   _                  ____        _        _                    _   ');
-    Logger.rainbow('logo',
+    Logger.rainbow('LOGO',
         ' | \\ | | ___  _ __   ___| __ )  ___ | |_     / \\   __ _  ___ _ __ | |_ ');
-    Logger.rainbow('logo',
+    Logger.rainbow('LOGO',
         ' |  \\| |/ _ \\| \'_ \\ / _ |  _ \\ / _ \\| __|   / _ \\ / _` |/ _ | \'_ \\| __|');
-    Logger.rainbow('logo',
+    Logger.rainbow('LOGO',
         ' | |\\  | (_) | | | |  __| |_) | (_) | |_   / ___ | (_| |  __| | | | |_ ');
-    Logger.rainbow('logo',
+    Logger.rainbow('LOGO',
         ' |_| \\_|\\___/|_| |_|\\___|____/ \\___/ \\__| /_/   \\_\\__, |\\___|_| |_|\\__|');
-    Logger.rainbow('logo',
-        '                                                |___/                 ');
+    Logger.rainbow('LOGO',
+        '                                                  |___/                 ');
     var uuid = Uuid();
     String token = uuid.v4().replaceAll('-', '').substring(0, 8);
     File file = File('config.json');
