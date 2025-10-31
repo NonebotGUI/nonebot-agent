@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
@@ -10,6 +11,7 @@ import '../utils/logger.dart';
 import '../utils/manage.dart';
 import '../utils/run_cmd.dart';
 import '../utils/ws_handler.dart';
+import '../utils/file.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -478,6 +480,36 @@ void main() {
         return Response.ok('{"code": 1005, "error": "Not allowed operation!"}',
             headers: {'Content-Type': 'application/json'}, encoding: utf8);
       }
+    });
+
+    // 文件下载
+    router.get('/nbgui/v1/file/download/<id>/<path|.*>',
+        (Request request, String id, String path) {
+      final botPath = Bot.path(id);
+      if (botPath.isEmpty) {
+        return Response.notFound('{"error": "Bot not found!"}',
+            headers: {'Content-Type': 'application/json'});
+      }
+      final requestedFile = File(p.join(botPath, path));
+      if (!p
+          .normalize(requestedFile.absolute.path)
+          .startsWith(p.normalize(Directory(botPath).absolute.path))) {
+        return Response.forbidden('{"error": "Access Denied"}',
+            headers: {'Content-Type': 'application/json'});
+      }
+
+      if (!requestedFile.existsSync()) {
+        return Response.notFound('{"error": "File not found"}',
+            headers: {'Content-Type': 'application/json'});
+      }
+
+      final headers = {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition':
+            'attachment; filename="${p.basename(requestedFile.path)}"',
+      };
+
+      return Response.ok(requestedFile.openRead(), headers: headers);
     });
 
     // WebSocket 路由
