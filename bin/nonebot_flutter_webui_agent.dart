@@ -12,6 +12,66 @@ import '../utils/manage.dart';
 import '../utils/run_cmd.dart';
 import '../utils/ws_handler.dart';
 
+// 新的 CORS 中间件
+const _corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Origin, Content-Type, Authorization',
+};
+
+Middleware createCorsMiddleware() {
+  return createMiddleware(
+    requestHandler: (Request request) {
+      if (request.method == 'OPTIONS') {
+        return Response.ok(null, headers: _corsHeaders);
+      }
+      return null;
+    },
+    responseHandler: (Response response) {
+      return response.change(headers: _corsHeaders);
+    },
+  );
+}
+
+// 初始化鉴权中间件
+Middleware handleAuth({required String token}) {
+  return (Handler handler) {
+    return (Request request) {
+      if (request.method == 'OPTIONS') {
+        return handler(request);
+      }
+
+      final authHeader = request.headers['authorization'];
+      if (authHeader != null && authHeader.startsWith('Bearer ')) {
+        final String? tokenValue = authHeader.split('Bearer ').last;
+        if (tokenValue == token) {
+          return handler(request);
+        }
+      }
+
+      return Response(
+        401,
+        body: '{"error": "401 Unauthorized!"}',
+        headers: {'Content-Type': 'application/json'},
+      );
+    };
+  };
+}
+
+// 统一 Log 输出
+Middleware customLogRequests() {
+  return (Handler innerHandler) {
+    return (Request request) async {
+      final watch = Stopwatch()..start();
+      final response = await innerHandler(request);
+      final latency = watch.elapsed;
+      Logger.api(request.method, response.statusCode,
+          '${request.url}\t\t${latency.inMilliseconds}ms');
+      return response;
+    };
+  };
+}
+
 void main() {
   runZonedGuarded(() async {
     Logger.warn('NoneBot Agent will start in 3 seconds...');
@@ -88,59 +148,6 @@ void main() {
 
     // 创建路由
     var router = Router();
-
-    // 初始化鉴权中间件
-    Middleware corsHeaders() {
-      return (Handler innerHandler) {
-        return (Request request) async {
-          if (request.method == 'OPTIONS') {
-            return Response.ok(null, headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-              'Access-Control-Allow-Headers':
-                  'Origin, Content-Type, Authorization',
-            });
-          }
-
-          final response = await innerHandler(request);
-
-          return response.change(headers: {
-            'Access-Control-Allow-Origin': '*',
-          });
-        };
-      };
-    }
-
-    Middleware handleAuth({required String token}) {
-      return (Handler handler) {
-        return (Request request) async {
-          final authHeader = request.headers['Authorization'];
-
-          if (authHeader == null || authHeader != 'Bearer $token') {
-            return Response(
-              401,
-              body: '{"error": "401 Unauthorized!"}',
-              headers: {'Content-Type': 'application/json'},
-            );
-          }
-          return handler(request);
-        };
-      };
-    }
-
-    // 统一 Log 输出
-    Middleware customLogRequests() {
-      return (Handler innerHandler) {
-        return (Request request) async {
-          final watch = Stopwatch()..start();
-          final response = await innerHandler(request);
-          final latency = watch.elapsed;
-          Logger.api(request.method, response.statusCode,
-              '${request.url}\t\t${latency.inMilliseconds}ms');
-          return response;
-        };
-      };
-    }
 
     // 定义 API 路由
     // ping
@@ -616,7 +623,7 @@ void main() {
 
     // 配置中间件
     var httpHandler = const Pipeline()
-        .addMiddleware(corsHeaders())
+        .addMiddleware(createCorsMiddleware())
         .addMiddleware(customLogRequests())
         .addMiddleware(handleAuth(token: token))
         .addMiddleware(handleErrors())
