@@ -11,7 +11,6 @@ import '../utils/logger.dart';
 import '../utils/manage.dart';
 import '../utils/run_cmd.dart';
 import '../utils/ws_handler.dart';
-import '../utils/file.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -510,6 +509,78 @@ void main() {
       };
 
       return Response.ok(requestedFile.openRead(), headers: headers);
+    });
+
+    // 文件上传
+    router.post('/nbgui/v1/file/upload/', (Request request) async {
+      try {
+        final String? filename = request.url.queryParameters['filename'];
+        var subPath = request.url.queryParameters['path']; // 改为 var
+        final String? id = request.url.queryParameters['id'];
+
+        if (filename == null || filename.isEmpty) {
+          return Response.badRequest(
+            body: jsonEncode({'error': 'Filename parameter is required'}),
+            headers: {'Content-Type': 'application/json'},
+          );
+        }
+
+        if (id == null || id.isEmpty) {
+          return Response.badRequest(
+            body: jsonEncode({'error': 'Path parameter is required'}),
+            headers: {'Content-Type': 'application/json'},
+          );
+        }
+        if (subPath != null && subPath.startsWith('/')) {
+          subPath = subPath.substring(1);
+        }
+
+        final filePath = p.join(Bot.path(id), subPath ?? '', filename);
+        final file = File(filePath);
+        await file.parent.create(recursive: true);
+
+        if (await file.exists()) {
+          return Response.forbidden(
+            jsonEncode({'error': 'File already exists'}),
+          );
+        }
+
+        final fileSink = file.openWrite();
+        int totalBytes = 0;
+
+        try {
+          await for (final chunk in request.read()) {
+            fileSink.add(chunk);
+            totalBytes += chunk.length;
+          }
+          await fileSink.close();
+
+          Logger.info('Stream upload completed: $filePath ($totalBytes bytes)');
+
+          return Response.ok(
+            jsonEncode({
+              'success': true,
+              'message': 'File uploaded successfully',
+              'filename': filename,
+              'path': filePath,
+              'size': totalBytes,
+            }),
+            headers: {'Content-Type': 'application/json'},
+          );
+        } catch (e) {
+          await fileSink.close();
+          if (await file.exists()) {
+            await file.delete();
+          }
+          rethrow;
+        }
+      } catch (e) {
+        Logger.error('Stream upload error: $e');
+        return Response.internalServerError(
+          body: jsonEncode({'error': 'Stream upload failed: $e'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
     });
 
     // WebSocket 路由
