@@ -90,6 +90,27 @@ void main() {
     var router = Router();
 
     // 初始化鉴权中间件
+    Middleware corsHeaders() {
+      return (Handler innerHandler) {
+        return (Request request) async {
+          if (request.method == 'OPTIONS') {
+            return Response.ok(null, headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers':
+                  'Origin, Content-Type, Authorization',
+            });
+          }
+
+          final response = await innerHandler(request);
+
+          return response.change(headers: {
+            'Access-Control-Allow-Origin': '*',
+          });
+        };
+      };
+    }
+
     Middleware handleAuth({required String token}) {
       return (Handler handler) {
         return (Request request) async {
@@ -595,6 +616,7 @@ void main() {
 
     // 配置中间件
     var httpHandler = const Pipeline()
+        .addMiddleware(corsHeaders())
         .addMiddleware(customLogRequests())
         .addMiddleware(handleAuth(token: token))
         .addMiddleware(handleErrors())
