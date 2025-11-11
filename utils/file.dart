@@ -1,4 +1,3 @@
-import 'global.dart';
 import 'dart:io';
 import 'logger.dart';
 import 'manage.dart';
