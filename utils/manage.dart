@@ -103,7 +103,7 @@ class Bot {
     Map botInfo = json.decode(cfgFile.readAsStringSync());
     String pidString = botInfo['pid'].toString();
     int pid = int.parse(pidString);
-    Process.killPid(pid);
+    Process.killPid(pid, ProcessSignal.sigint);
 
     ///更新配置文件
     botInfo['isRunning'] = false;
