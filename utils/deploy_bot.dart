@@ -144,7 +144,8 @@ class DeployBot {
   "protocolPath": "$protocolPath",
   "cmd": "$cmd",
   "protocolPid": "Null",
-  "protocolIsRunning": false
+  "protocolIsRunning": false,
+  "autoStart": false
 }
 ''';
 
@@ -169,36 +170,6 @@ class DeployProtocol {
         FastDeploy.cmd =
             FastDeploy.cmd.replaceAll('NBGUI.QQNUM', FastDeploy.botQQ);
       }
-    }
-  }
-
-  ///写入协议端配置文件
-  static Future<void> writeConfig() async {
-    if (FastDeploy.extDir.isEmpty) {
-      print('extDir is null');
-      return;
-    }
-
-    // 配置文件绝对路径
-    String path = '${FastDeploy.extDir}/${FastDeploy.configPath}';
-    File pcfg = File(FastDeploy.needQQ
-        ? path.replaceAll('NBGUI.QQNUM', FastDeploy.botQQ)
-        : path);
-
-    // 将wsPort转为int类型
-    String content = FastDeploy.botConfig
-        .toString()
-        .replaceAll('NBGUI.HOST:NBGUI.PORT',
-            "${FastDeploy.wsHost}:${FastDeploy.wsPort}")
-        .replaceAll('"NBGUI.PORT"', FastDeploy.wsPort)
-        .replaceAll('NBGUI.HOST', FastDeploy.wsHost);
-
-    await pcfg.writeAsString(content);
-
-    if (Platform.isLinux || Platform.isMacOS) {
-      // 给予执行权限
-      await Process.run('chmod', ['+x', FastDeploy.cmd],
-          workingDirectory: FastDeploy.extDir, runInShell: true);
     }
   }
 

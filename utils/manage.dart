@@ -30,6 +30,16 @@ class Bot {
     return jsonMap['path'].toString();
   }
 
+  /// Bot是否自动启动
+  static bool autoStart(id) {
+    Map<String, dynamic> jsonMap = _config(id);
+    if (jsonMap.containsKey('autoStart')) {
+      return jsonMap['autoStart'];
+    } else {
+      return false;
+    }
+  }
+
   /// 获取Bot日志
   static Future<String> log(id) async {
     File file = File('${Bot.path(id)}/nbgui_stdout.log');
@@ -172,8 +182,8 @@ class Bot {
       "isRunning": false,
       "pid": "Null",
       "type": type,
-      "protocolPath": protocolPath,
-      "cmd": cmd,
+      "protocolPath": "none",
+      "cmd": "none",
       "protocolPid": "Null",
       "protocolIsRunning": false
     };
@@ -189,100 +199,6 @@ class Bot {
     } else {
       file.createSync();
     }
-  }
-}
-
-// 协议端相关操作
-class Protocol {
-  static final File _configFile = File('bots/${gOnOpen}.json');
-  static Map<String, dynamic> _config() {
-    File file = File('bots/${gOnOpen}.json');
-    String content = file.readAsStringSync();
-    return jsonDecode(content);
-  }
-
-  ///协议端路径
-  static String path() {
-    Map<String, dynamic> jsonMap = _config();
-    return jsonMap['protocolPath'].toString().replaceAll('\\\\', '\\');
-  }
-
-  ///协议端运行状态
-  static bool status() {
-    Map<String, dynamic> jsonMap = _config();
-    bool protocolStatus = jsonMap['protocolIsRunning'];
-    return protocolStatus;
-  }
-
-  ///协议端pid
-  static String pid() {
-    Map<String, dynamic> jsonMap = _config();
-    return jsonMap['protocolPid'].toString();
-  }
-
-  ///协议端启动命令
-  static String cmd() {
-    Map<String, dynamic> jsonMap = _config();
-    return jsonMap['cmd'].toString();
-  }
-
-  ///启动协议端进程
-  static Future run() async {
-    Directory.current = Directory(Protocol.path());
-    Map<String, dynamic> jsonMap = _config();
-    String ucmd = Protocol.cmd();
-    //分解cmd
-    List<String> cmdList = ucmd.split(' ').toList();
-    String pcmd = '';
-    List<String> args = [];
-    if (cmdList.length > 1) {
-      pcmd = cmdList[0];
-      args = cmdList.sublist(1);
-    } else {
-      pcmd = cmdList[0];
-      args = [];
-    }
-    final stdout = File('${Protocol.path()}/nbgui_stdout.log');
-    final stderr = File('${Protocol.path()}/nbgui_stderr.log');
-    Process process =
-        await Process.start(pcmd, args, workingDirectory: Protocol.path());
-    int pid = process.pid;
-
-    /// 重写配置文件来更新状态
-    jsonMap['protocolPid'] = pid;
-    jsonMap['protocolIsRunning'] = true;
-    _configFile.writeAsStringSync(jsonEncode(jsonMap));
-
-    final outputSink = stdout.openWrite();
-    final errorSink = stderr.openWrite();
-
-    // 直接监听原始字节输出
-    process.stdout.listen((data) {
-      outputSink.add(data);
-    });
-
-    process.stderr.listen((data) {
-      errorSink.add(data);
-    });
-  }
-
-  ///结束协议端进程
-  static Future stop() async {
-    Map botInfo = _config();
-    String pidString = botInfo['protocolPid'].toString();
-    int pid = int.parse(pidString);
-    Process.killPid(pid, ProcessSignal.sigkill);
-    //更新配置文件
-    botInfo['protocolIsRunning'] = false;
-    botInfo['protocolPid'] = 'Null';
-    _configFile.writeAsStringSync(json.encode(botInfo));
-  }
-
-  ///更改协议端启动命令
-  static void changeCmd(String cmd) {
-    Map<String, dynamic> jsonMap = _config();
-    jsonMap['cmd'] = cmd;
-    _configFile.writeAsStringSync(jsonEncode(jsonMap));
   }
 }
 
