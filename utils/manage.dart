@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'core.dart';
 import 'global.dart';
+import 'logger.dart';
 import 'user_config.dart';
 import 'package:toml/toml.dart';
 
@@ -192,12 +193,27 @@ class Bot {
     return "echo 写入json";
   }
 
+  // 清空stderr.log
   static void clearStderr(String id) {
     File file = File('${Bot.path(id)}/nbgui_stderr.log');
     if (file.existsSync()) {
       file.writeAsStringSync('');
     } else {
       file.createSync();
+    }
+  }
+
+  // 切换自动启动状态
+  static void toggleAutoStart(String id) {
+    File cfgFile = File('bots/$id.json');
+    if (cfgFile.existsSync()) {
+      Map<String, dynamic> jsonMap = jsonDecode(cfgFile.readAsStringSync());
+      bool currentStatus =
+          jsonMap.containsKey('autoStart') ? jsonMap['autoStart'] : false;
+      jsonMap['autoStart'] = !currentStatus;
+      cfgFile.writeAsStringSync(jsonEncode(jsonMap));
+    } else {
+      Logger.error("Bot configuration file not found for id: $id");
     }
   }
 }

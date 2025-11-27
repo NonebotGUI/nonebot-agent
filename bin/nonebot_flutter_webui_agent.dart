@@ -316,6 +316,14 @@ void main() {
           headers: {'Content-Type': 'application/json'}, encoding: utf8);
     });
 
+    // 切换 Bot 自动启动状态
+    router.post('/nbgui/v1/bot/autostart/<id>',
+        (Request request, String id) async {
+      Bot.toggleAutoStart(id);
+      return Response.ok('{"status": "Succeed!"}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
     // 获取系统状态
     router.get('/nbgui/v1/system/status', (Request request) async {
       return Response.ok(await System.status(),

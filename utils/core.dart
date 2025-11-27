@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'global.dart';
 import 'logger.dart';
+import 'manage.dart';
 import 'user_config.dart';
 import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 
 class AgentMain {
   /// 软件版本
@@ -77,12 +77,29 @@ class AgentMain {
     await getnbcliver();
     if (MainApp.python == '你似乎还没有安装python？') {
       Logger.warn('It seems that you have not installed python?');
+      canAutoStart = false;
     }
     if (MainApp.nbcli == '你似乎还没有安装nb-cli？') {
       Logger.warn('It seems that you have not installed nb-cli?');
+      canAutoStart = false;
     }
+    autoStartBots();
     if (UserConfig.checkUpdate()) {
       await check();
+    }
+  }
+
+  /// 自动启动Bot
+  static void autoStartBots() {
+    if (canAutoStart) {
+      for (var bot in MainApp.botList) {
+        if (bot['autoStart'] != null) {
+          if (bot['autoStart']) {
+            Logger.info('Auto starting bot ${bot['id']}');
+            Bot.run(bot['id']);
+          }
+        }
+      }
     }
   }
 

@@ -276,6 +276,19 @@ var wsHandler = webSocketHandler((webSocket) async {
                 webSocket.sink.add(res);
                 break;
 
+              // 切换 Bot 自动启动状态
+              case var toggleAutoStart
+                  when toggleAutoStart.startsWith('bot/toggleAutoStart'):
+                var id = toggleAutoStart.split('/')[2];
+                Bot.toggleAutoStart(id);
+                Map response = {
+                  "type": "toggleAutoStart",
+                  "data": {"status": "Bot $id autoStart toggled!"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
               // 安装插件
               case var installPlugin
                   when installPlugin.startsWith('plugin/install'):

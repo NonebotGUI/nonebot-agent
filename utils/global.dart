@@ -4,6 +4,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 String gOnOpen = "";
 List<WebSocketChannel> wsChannels = [];
+bool canAutoStart = true;
 
 class MainApp {
   ///Bot列表
