@@ -113,6 +113,13 @@ void main() {
     // 设置SIGINT信号处理器
     ProcessSignal.sigint.watch().listen((signal) {
       Logger.info('Waiting for applications shutdown');
+      Logger.info('Stopping all running bots...');
+      for (var bot in MainApp.botList) {
+        if (Bot.status(bot['id'])) {
+          Bot.stop(bot['id']);
+          Logger.info('Bot ${bot['id']} stopped.');
+        }
+      }
       Logger.info('Application shutdown completed');
       Logger.info('Finished server process [$pid]');
       exit(0);
