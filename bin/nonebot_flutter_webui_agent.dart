@@ -43,7 +43,7 @@ Middleware handleAuth({required String token}) {
 
       final authHeader = request.headers['authorization'];
       if (authHeader != null && authHeader.startsWith('Bearer ')) {
-        final String? tokenValue = authHeader.split('Bearer ').last;
+        final String tokenValue = authHeader.split('Bearer ').last;
         if (tokenValue == token) {
           return handler(request);
         }
@@ -117,7 +117,6 @@ void main() {
       for (var bot in MainApp.botList) {
         if (Bot.status(bot['id'])) {
           Bot.stop(bot['id']);
-          Logger.info('Bot ${bot['id']} stopped.');
         }
       }
       Logger.info('Application shutdown completed');

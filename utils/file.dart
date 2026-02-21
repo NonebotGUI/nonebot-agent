@@ -110,7 +110,8 @@ class FileUtils {
       String uuid, String subPath, String sourceName, String targetName) {
     final botPtah = Bot.path(uuid);
     final sourcePath = p.join(botPtah, subPath, sourceName);
-    var targetPath = p.join(botPtah, subPath, targetName); // 初始目标路径
+    var targetDir = p.join(botPtah, targetName);
+    var targetPath = p.join(targetDir, p.basename(sourcePath));
 
     try {
       final sourceType = FileSystemEntity.typeSync(sourcePath);
@@ -119,14 +120,8 @@ class FileUtils {
         return false;
       }
 
-      if (Directory(targetPath).existsSync()) {
-        targetPath = p.join(targetPath, p.basename(sourcePath));
-      }
-
       if (sourceType == FileSystemEntityType.file) {
-        final sourceFile = File(sourcePath);
-        Directory(p.dirname(targetPath)).createSync(recursive: true);
-        sourceFile.copySync(targetPath);
+        File(sourcePath).copySync(targetPath);
       } else if (sourceType == FileSystemEntityType.directory) {
         final sourceDir = Directory(sourcePath);
         final targetDir = Directory(targetPath);
@@ -216,7 +211,12 @@ class FileUtils {
       String uuid, String subPath, String sourceName, String targetName) {
     final botPtah = Bot.path(uuid);
     final sourcePath = p.join(botPtah, subPath, sourceName);
-    var targetPath = p.join(botPtah, subPath, targetName); // 初始目标路径
+
+    // 获取目标目录的绝对路径 (targetName 是前端传来的 destination path)
+    var targetDir = p.join(botPtah, targetName);
+
+    // 将文件名拼接到目标目录，构成完整的目标文件路径
+    var targetPath = p.join(targetDir, p.basename(sourcePath));
 
     try {
       final sourceType = FileSystemEntity.typeSync(sourcePath);
@@ -224,16 +224,12 @@ class FileUtils {
         Logger.error("Source path does not exist: $sourcePath");
         return false;
       }
-      if (Directory(targetPath).existsSync()) {
-        targetPath = p.join(targetPath, p.basename(sourcePath));
-      }
+
       Directory(p.dirname(targetPath)).createSync(recursive: true);
       if (sourceType == FileSystemEntityType.directory) {
-        final directory = Directory(sourcePath);
-        directory.renameSync(targetPath);
+        Directory(sourcePath).renameSync(targetPath);
       } else if (sourceType == FileSystemEntityType.file) {
-        final file = File(sourcePath);
-        file.renameSync(targetPath);
+        File(sourcePath).renameSync(targetPath);
       }
       Logger.info("Moved '$sourcePath' to '$targetPath'");
       return true;
