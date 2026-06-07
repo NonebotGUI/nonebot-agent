@@ -7,6 +7,9 @@ import 'user_config.dart';
 import 'package:toml/toml.dart';
 
 class Bot {
+  /// 存储当前运行的进程实例，用于向其发送标准输入（如解决ORM交互等）
+  static Map<String, Process> activeProcesses = {};
+
   static Map<String, dynamic> _config(id) {
     File file = File('bots/$id.json');
     String content = file.readAsStringSync();
@@ -43,6 +46,34 @@ class Bot {
 
   /// 获取Bot日志
   static Future<String> log(id) async {
+    Map<String, dynamic> botInfo = _config(id);
+    if (botInfo['isRunning'] == true) {
+      String pidStr = botInfo['pid'].toString();
+      if (pidStr != 'Null' && pidStr != 'null') {
+        int? pid = int.tryParse(pidStr);
+        if (pid != null) {
+          bool isRunning = false;
+          if (Platform.isWindows) {
+            var result = await Process.run('tasklist', ['/FI', 'PID eq $pid']);
+            isRunning = result.stdout.toString().contains(pid.toString());
+          } else if (Platform.isLinux || Platform.isAndroid) {
+            isRunning = Directory('/proc/$pid').existsSync();
+          } else {
+            var result = await Process.run('ps', ['-p', pid.toString()]);
+            isRunning = result.stdout.toString().contains(pid.toString());
+          }
+          
+          if (!isRunning) {
+            botInfo['isRunning'] = false;
+            botInfo['pid'] = 'Null';
+            File cfgFile = File('bots/$id.json');
+            cfgFile.writeAsStringSync(jsonEncode(botInfo));
+            Bot.activeProcesses.remove(id);
+          }
+        }
+      }
+    }
+
     File file = File('${Bot.path(id)}/nbgui_stdout.log');
     if (file.existsSync()) {
       List<String> lines = file.readAsLinesSync(encoding: systemEncoding);
@@ -87,6 +118,7 @@ class Bot {
     Process process = await Process.start('${UserConfig.nbcliPath()}', ['run'],
         workingDirectory: Bot.path(id));
     int pid = process.pid;
+    Bot.activeProcesses[id] = process;
 
     /// 重写配置文件来更新状态
     Map<String, dynamic> jsonMap = jsonDecode(cfgFile.readAsStringSync());
@@ -115,6 +147,7 @@ class Bot {
     String pidString = botInfo['pid'].toString();
     int pid = int.parse(pidString);
     Process.killPid(pid, ProcessSignal.sigint);
+    Bot.activeProcesses.remove(id);
 
     ///更新配置文件
     botInfo['isRunning'] = false;
@@ -164,6 +197,13 @@ class Bot {
     String path = Bot.path(id);
     Directory(path).delete(recursive: true);
     File('bots/$id.json').delete();
+  }
+
+  /// 向Bot进程发送交互输入（如处理ORM迁移提示）
+  static void sendInput(id, String input) {
+    if (activeProcesses.containsKey(id)) {
+      activeProcesses[id]!.stdin.writeln(input);
+    }
   }
 
   ///导入Bot
