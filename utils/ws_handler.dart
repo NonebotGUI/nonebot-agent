@@ -276,6 +276,22 @@ var wsHandler = webSocketHandler((webSocket) async {
                 webSocket.sink.add(res);
                 break;
 
+              // 发送终端输入
+              case var botInput when botInput.startsWith('bot/input'):
+                var data = botInput.split('?data=')[1];
+                var botJson = jsonDecode(data);
+                String id = botJson['id'];
+                String input = botJson['input'] ?? '';
+                Bot.sendInput(id, input);
+                Logger.success('Sent input to Bot $id');
+                Map response = {
+                  "type": "botInput",
+                  "data": {"status": "Input sent to Bot $id"}
+                };
+                String res = jsonEncode(response);
+                webSocket.sink.add(res);
+                break;
+
               // 切换 Bot 自动启动状态
               case var toggleAutoStart
                   when toggleAutoStart.startsWith('bot/toggleAutoStart'):

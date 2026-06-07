@@ -245,6 +245,17 @@ void main() {
       }
     });
 
+    // 发送交互输入给 Bot
+    router.post('/nbgui/v1/bot/input/<id>', (Request request, String id) async {
+      final body = await request.readAsString();
+      var data = jsonDecode(body);
+      String input = data['input'] ?? '';
+      Bot.sendInput(id, input);
+      Logger.success('Sent input to Bot $id');
+      return Response.ok('{"status": "Input sent"}',
+          headers: {'Content-Type': 'application/json'}, encoding: utf8);
+    });
+
     // 导入 Bot
     router.post('/nbgui/v1/bot/import', (Request request) async {
       final body = await request.readAsString();
